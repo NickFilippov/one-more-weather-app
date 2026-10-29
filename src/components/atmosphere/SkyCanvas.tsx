@@ -13,8 +13,8 @@ export interface SkyCanvasProps {
   running: boolean;
 }
 
-/** Всё, что рисует Skia: свечение, облака, дождь. Подключается через SkyEffects. */
-export default function SkyCanvas({ condition, width, height, running }: SkyCanvasProps) {
+/** Всё, что рисует Skia: свечение, облака, дождь. */
+export function SkyCanvas({ condition, width, height, running }: SkyCanvasProps) {
   // Canvas Skia — отдельный рендерер: React-контекст внутрь не проходит, цвета берём здесь и передаём пропсами.
   const { c, name } = useTheme();
   const sunny = condition === 'clear' || condition === 'partly';

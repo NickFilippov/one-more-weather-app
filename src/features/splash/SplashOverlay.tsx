@@ -24,9 +24,6 @@ import { curve } from '@/theme/motion';
 import { colors } from '@/theme/tokens';
 import { scheduleStillSplash, STILL, T } from './timeline';
 
-/** На телефонах сплэш анимированный; в веб-превью его нет (SplashOverlay.web.tsx). */
-export const animatedSplash = true;
-
 // Кадр нативной заставки. assets/splash-icon.png рисует scripts/splash-icon.mjs с теми же размерами:
 // горизонт 120×2 и солнце 28 в центре экрана, поэтому подмена нативного сплэша не видна.
 const NIGHT = colors.night.skyBottom; // backgroundColor сплэша в app.json

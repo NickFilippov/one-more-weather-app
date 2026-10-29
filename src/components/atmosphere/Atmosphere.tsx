@@ -6,7 +6,7 @@ import type { Condition } from '@/features/weather/types';
 import { useReduceMotion } from '@/lib/useReduceMotion';
 import { useTheme } from '@/theme/ThemeProvider';
 import { BlurTargetContext, type BlurTargetRef } from './BlurTargetContext';
-import { SkyEffects } from './SkyEffects';
+import { SkyCanvas } from './SkyCanvas';
 
 interface Props {
   condition: Condition;
@@ -49,7 +49,7 @@ export function Atmosphere({ condition, active, onBlurTarget, children, style }:
       </BlurTargetView>
       {/* Холст вне цели размытия: иначе на Android каждый BlurView пересчитывает размытие на каждом
           кадре анимации неба (замер: 2.5 с на кадр в debug). Стекло размывает неподвижный градиент. */}
-      {size.w > 0 && <SkyEffects condition={condition} width={size.w} height={size.h} running={running} />}
+      {size.w > 0 && <SkyCanvas condition={condition} width={size.w} height={size.h} running={running} />}
       <BlurTargetContext.Provider value={targetRef}>{children}</BlurTargetContext.Provider>
     </View>
   );

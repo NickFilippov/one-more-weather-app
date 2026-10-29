@@ -43,6 +43,5 @@ export function SearchField({ value, onChangeText }: Props) {
 const styles = StyleSheet.create({
   panel: { height: 52 },
   row: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24 },
-  // outlineWidth: в веб-превью браузер иначе рисует рамку фокуса поверх стекла
-  input: { flex: 1, alignSelf: 'stretch', paddingVertical: 0, outlineWidth: 0 },
+  input: { flex: 1, alignSelf: 'stretch', paddingVertical: 0 },
 });

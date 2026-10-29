@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
 import { BlurTargetContext, type BlurTargetRef } from '@/components/atmosphere/BlurTargetContext';
 import { Footer } from '@/components/Footer';
-import { Pager, type PagerHandle } from '@/components/Pager';
+import PagerView from 'react-native-pager-view';
 import { PageDots } from '@/components/PageDots';
 import { StatePanel } from '@/components/StatePanel';
 import { useCitiesStore } from '@/features/cities/citiesStore';
@@ -21,7 +21,7 @@ export default function MainScreen() {
   const saved = useCitiesStore((s) => s.saved);
   const pages = useMemo(() => (currentLocation ? [currentLocation, ...saved] : saved), [currentLocation, saved]);
 
-  const pagerRef = useRef<PagerHandle>(null);
+  const pagerRef = useRef<PagerView>(null);
   const appActive = useAppActive();
   const [currentId, setCurrentId] = useState<string | null>(null);
   // Небо активной страницы: цель размытия для футера, который лежит поверх пейджера
@@ -70,13 +70,19 @@ export default function MainScreen() {
 
   return (
     <View style={styles.root}>
-      <Pager ref={pagerRef} initialPage={index} onPageSelected={(i) => setCurrentId(pages[i]?.id ?? null)}>
+      {/* города листаются свайпом */}
+      <PagerView
+        ref={pagerRef}
+        style={styles.root}
+        initialPage={index}
+        onPageSelected={(e) => setCurrentId(pages[e.nativeEvent.position]?.id ?? null)}
+      >
         {pages.map((c, i) => (
           <View key={c.id} style={styles.root} collapsable={false}>
             <CityPage city={c} active={appActive && i === index} onBlurTarget={setFooterTarget} />
           </View>
         ))}
-      </Pager>
+      </PagerView>
       <ThemeProvider theme={footerTheme}>
         <BlurTargetContext.Provider value={footerTarget}>
           <Footer

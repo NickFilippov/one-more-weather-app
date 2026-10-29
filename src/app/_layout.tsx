@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { animatedSplash, SplashOverlay } from '@/features/splash/SplashOverlay';
+import { SplashOverlay } from '@/features/splash/SplashOverlay';
 import { useWeatherAutoRefresh } from '@/features/weather/useWeatherAutoRefresh';
 import { setEntrancePhase } from '@/lib/entrance';
 import { ReduceMotionProvider } from '@/lib/useReduceMotion';
@@ -16,13 +16,13 @@ import { colors } from '@/theme/tokens';
 // и сразу начинает восход. Главный экран монтируется, когда кадр сплэша собран и неподвижен,
 // и ждёт своей фазы появления.
 void SplashScreen.preventAutoHideAsync();
-if (animatedSplash) setEntrancePhase('cover');
+setEntrancePhase('cover');
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets);
   const fontsReady = loaded || !!error;
   // Тяжёлый монтаж главного экрана (на Android около секунды) не должен рвать анимацию сплэша
-  const [mainMounted, setMainMounted] = useState(!animatedSplash);
+  const [mainMounted, setMainMounted] = useState(false);
   const [mainReady, setMainReady] = useState(false);
   const mountMain = useCallback(() => setMainMounted(true), []);
   // Раскладка готова; ещё два кадра, чтобы нативные виды успели нарисоваться
@@ -30,10 +30,6 @@ export default function RootLayout() {
     requestAnimationFrame(() => requestAnimationFrame(() => setMainReady(true)));
   }, []);
   useWeatherAutoRefresh();
-
-  useEffect(() => {
-    if (!animatedSplash && fontsReady) SplashScreen.hide();
-  }, [fontsReady]);
 
   return (
     <ReduceMotionProvider>
