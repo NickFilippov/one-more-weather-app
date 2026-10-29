@@ -67,15 +67,15 @@ export function GlassPanel({
           }
           isInteractive={interactive}
           colorScheme="dark"
-          style={{ flex: 1, borderRadius: radius, overflow: 'hidden' }}
+          style={{ flexGrow: 1, borderRadius: radius, overflow: 'hidden' }}
         >
-          <Animated.View style={[{ flex: 1 }, content]}>{children}</Animated.View>
+          <Animated.View style={[{ flexGrow: 1 }, content]}>{children}</Animated.View>
         </GlassView>
       );
     }
     return (
-      <View style={{ flex: 1, borderRadius: radius, boxShadow: pressed ? shadow.press : shadow.lift }}>
-        <View style={{ flex: 1, borderRadius: radius, overflow: 'hidden' }}>
+      <View style={{ flexGrow: 1, borderRadius: radius, boxShadow: pressed ? shadow.press : shadow.lift }}>
+        <View style={{ flexGrow: 1, borderRadius: radius, overflow: 'hidden' }}>
           {/* iOS и веб размывают всё, что лежит под панелью; Android — только содержимое цели */}
           {(Platform.OS !== 'android' || target) && (
             <BlurView
@@ -113,7 +113,7 @@ export function GlassPanel({
           {body}
         </PressableScale>
       ) : (
-        <View style={{ flex: 1 }} accessible={group} accessibilityLabel={group ? label : undefined}>
+        <View style={{ flexGrow: 1 }} accessible={group} accessibilityLabel={group ? label : undefined}>
           {body(false)}
         </View>
       )}

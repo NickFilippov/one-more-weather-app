@@ -36,9 +36,9 @@ export function PressableScale({ onPress, label, scale, to = 0.97, style, childr
         setPressed(false);
         if (animate) s.set(withTiming(1, { duration: duration.ui, easing: ease.spring }));
       }}
-      style={[{ flex: 1 }, style]}
+      style={[{ flexGrow: 1 }, style]}
     >
-      <Animated.View style={[{ flex: 1 }, anim]}>{children(pressed)}</Animated.View>
+      <Animated.View style={[{ flexGrow: 1 }, anim]}>{children(pressed)}</Animated.View>
     </Pressable>
   );
 }
