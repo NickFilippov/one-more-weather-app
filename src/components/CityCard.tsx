@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
-import { PressableScale } from '@/components/glass/PressableScale';
+import { PressableScale } from '@/components/PressableScale';
 import { Reveal } from '@/components/Reveal';
 import type { CityCardVM } from '@/features/weather/types';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
@@ -24,11 +24,11 @@ export function CityCard({ onPress, delay = 0, ...vm }: Props) {
 }
 
 function Card({ vm, onPress }: { vm: CityCardVM; onPress: () => void }) {
-  const { c, shadow } = useTheme();
+  const { c } = useTheme();
   return (
-    <PressableScale scale to={0.98} label={vm.a11y} onPress={onPress}>
+    <PressableScale to={0.98} label={vm.a11y} onPress={onPress}>
       {(pressed) => (
-        <View style={[styles.card, { boxShadow: shadow.lift }]}>
+        <View style={styles.card}>
           <View style={styles.clip}>
             <Atmosphere condition={vm.sky} active={false}>
               <View style={styles.body}>
@@ -56,7 +56,7 @@ function Card({ vm, onPress }: { vm: CityCardVM; onPress: () => void }) {
               </View>
             </Atmosphere>
             {pressed ? (
-              <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: c.glassFillStrong }]} />
+              <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: c.panelStrong }]} />
             ) : null}
           </View>
           {/* рамка поверх неба, внутрь карточки */}

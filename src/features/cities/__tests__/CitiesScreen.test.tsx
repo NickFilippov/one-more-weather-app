@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CitiesScreen from '@/app/cities';
 import { useWeatherStore } from '@/features/weather/weatherStore';
-import { GlassModeProvider } from '@/theme/ThemeProvider';
 import { useCitiesStore } from '../citiesStore';
 import { searchCities } from '../geocodingApi';
 
@@ -28,10 +27,6 @@ jest.mock('@shopify/react-native-skia', () => {
     Skia: { PathBuilder: { Make: () => ({ moveTo() {}, lineTo() {}, build: () => ({}) }) } },
   };
 });
-jest.mock('expo-blur', () => {
-  const { View } = jest.requireActual('react-native');
-  return { BlurView: View, BlurTargetView: View };
-});
 
 configure({ defaultIncludeHiddenElements: true });
 
@@ -42,9 +37,7 @@ const metrics = { frame: { x: 0, y: 0, width: 402, height: 874 }, insets: { top:
 const renderScreen = () =>
   render(
     <SafeAreaProvider initialMetrics={metrics}>
-      <GlassModeProvider>
-        <CitiesScreen />
-      </GlassModeProvider>
+      <CitiesScreen />
     </SafeAreaProvider>,
   );
 

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { GlassPanel } from '@/components/glass/GlassPanel';
+import { Panel } from '@/components/Panel';
+import { Reveal } from '@/components/Reveal';
 import type { TileVM } from '@/features/weather/types';
 import { useTheme } from '@/theme/ThemeProvider';
 import { type } from '@/theme/typography';
@@ -13,16 +14,18 @@ function Tile({ tile, delay }: { tile: TileVM; delay: number }) {
   const { c } = useTheme();
   const spoken = `${tile.label}, ${tile.value}${tile.unit ? ` ${tile.unit}` : ''}. ${tile.note}`;
   return (
-    <GlassPanel delay={delay} group label={spoken} style={styles.tile}>
-      <View style={styles.inner}>
-        <Text style={[type.caption, { color: c.textMuted }]}>{tile.label}</Text>
-        <Text style={[type.tileValue, { color: c.text }]} maxFontSizeMultiplier={1.2}>
-          {tile.value}
-          {tile.unit ? <Text style={[type.unit, { color: c.text }]}> {tile.unit}</Text> : null}
-        </Text>
-        <Text style={[type.body, styles.note, { color: c.text }]}>{tile.note}</Text>
-      </View>
-    </GlassPanel>
+    <Reveal delay={delay} style={styles.tile}>
+      <Panel label={spoken} style={styles.fill}>
+        <View style={styles.inner}>
+          <Text style={[type.caption, { color: c.textMuted }]}>{tile.label}</Text>
+          <Text style={[type.tileValue, { color: c.text }]} maxFontSizeMultiplier={1.2}>
+            {tile.value}
+            {tile.unit ? <Text style={[type.unit, { color: c.text }]}> {tile.unit}</Text> : null}
+          </Text>
+          <Text style={[type.body, styles.note, { color: c.text }]}>{tile.note}</Text>
+        </View>
+      </Panel>
+    </Reveal>
   );
 }
 
@@ -47,6 +50,7 @@ export function Tiles({ tiles, delay = 280 }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 16 },
   tile: { flex: 1 },
+  fill: { flex: 1 },
   inner: { flex: 1, minHeight: 168, paddingTop: 12, paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
   note: { marginTop: 'auto' },
 });

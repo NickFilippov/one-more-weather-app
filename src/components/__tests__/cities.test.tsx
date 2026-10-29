@@ -3,7 +3,7 @@ import { CityCard } from '../CityCard';
 import { SearchField } from '../SearchField';
 import { SearchResults } from '@/features/cities/SearchResults';
 import { citiesList } from '@/mocks/citiesList';
-import { GlassModeProvider, ThemeProvider } from '@/theme/ThemeProvider';
+import { ThemeProvider } from '@/theme/ThemeProvider';
 
 // Skia и размытие — нативные: в Jest их заменяют пустышки
 jest.mock('@shopify/react-native-skia', () => {
@@ -19,19 +19,10 @@ jest.mock('@shopify/react-native-skia', () => {
     Skia: { PathBuilder: { Make: () => ({ moveTo() {}, lineTo() {}, build: () => ({}) }) } },
   };
 });
-jest.mock('expo-blur', () => {
-  const { View } = jest.requireActual('react-native');
-  return { BlurView: View, BlurTargetView: View };
-});
 
 configure({ defaultIncludeHiddenElements: true });
 
-const inNight = (node: React.ReactElement) =>
-  render(
-    <GlassModeProvider>
-      <ThemeProvider theme="night">{node}</ThemeProvider>
-    </GlassModeProvider>,
-  );
+const inNight = (node: React.ReactElement) => render(<ThemeProvider theme="night">{node}</ThemeProvider>);
 
 const kazan = { id: 'geo:551487', name: 'Казань', latitude: 55.79, longitude: 49.12, isCurrentLocation: false };
 

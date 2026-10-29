@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CityCard } from '@/components/CityCard';
-import { GlassButton } from '@/components/glass/GlassButton';
+import { RoundButton } from '@/components/RoundButton';
 import { SearchField } from '@/components/SearchField';
 import { selectPages, useCitiesStore } from '@/features/cities/citiesStore';
 import type { SearchResult } from '@/features/cities/geocodingApi';
@@ -74,7 +74,7 @@ function Body() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}
       >
         <View style={styles.header}>
-          <GlassButton size={44} label={ru.a11y.back} icon="back" onPress={() => router.back()} />
+          <RoundButton size={44} label={ru.a11y.back} icon="back" onPress={() => router.back()} />
           {/* «Изменить список» (more) появится на этапе 8 вместе с удалением и порядком */}
           <View style={styles.headerSpacer} />
         </View>

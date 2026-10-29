@@ -51,7 +51,7 @@ export function TempBar({ low, high, min, max, now, index }: Props) {
   return (
     <View
       onLayout={(e: LayoutChangeEvent) => setW(e.nativeEvent.layout.width)}
-      style={{ flex: 1, height: 5, borderRadius: 999, backgroundColor: c.glassFillStrong }}
+      style={{ flex: 1, height: 5, borderRadius: 999, backgroundColor: c.panelStrong }}
     >
       {w > 0 && (
         <Animated.View

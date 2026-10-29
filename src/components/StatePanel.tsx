@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { GlassPanel } from '@/components/glass/GlassPanel';
-import { PressableScale } from '@/components/glass/PressableScale';
+import { Panel } from '@/components/Panel';
+import { PressableScale } from '@/components/PressableScale';
+import { Reveal } from '@/components/Reveal';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 import { type } from '@/theme/typography';
@@ -16,30 +17,32 @@ interface Props {
 export function StatePanel({ title, text, actions, busy }: Props) {
   const { c } = useTheme();
   return (
-    <GlassPanel group label={title ? `${title}. ${text}` : text}>
-      <View style={styles.inner}>
-        {title ? <Text style={[type.headline, { color: c.text }]}>{title}</Text> : null}
-        <Text style={[type.body, { color: c.text }]}>{text}</Text>
-        {busy ? <ActivityIndicator color={c.text} style={{ alignSelf: 'flex-start' }} /> : null}
-        {actions?.map((a) => (
-          // кнопка без собственного стекла: стекло на стекло не кладём; размер задаёт обёртка
-          <View key={a.label} style={styles.button}>
-            <PressableScale scale label={a.label} onPress={a.onPress}>
-              {(pressed) => (
-                <View
-                  style={[
-                    styles.buttonInner,
-                    { backgroundColor: pressed ? c.glassEdge : c.glassFillStrong, borderRadius: radius.pill },
-                  ]}
-                >
-                  <Text style={[type.label, { color: c.text }]}>{a.label}</Text>
-                </View>
-              )}
-            </PressableScale>
-          </View>
-        ))}
-      </View>
-    </GlassPanel>
+    <Reveal>
+      <Panel label={title ? `${title}. ${text}` : text}>
+        <View style={styles.inner}>
+          {title ? <Text style={[type.headline, { color: c.text }]}>{title}</Text> : null}
+          <Text style={[type.body, { color: c.text }]}>{text}</Text>
+          {busy ? <ActivityIndicator color={c.text} style={{ alignSelf: 'flex-start' }} /> : null}
+          {actions?.map((a) => (
+            // размер кнопки задаёт обёртка
+            <View key={a.label} style={styles.button}>
+              <PressableScale label={a.label} onPress={a.onPress}>
+                {() => (
+                  <View
+                    style={[
+                      styles.buttonInner,
+                      { backgroundColor: c.panelStrong, borderRadius: radius.pill },
+                    ]}
+                  >
+                    <Text style={[type.label, { color: c.text }]}>{a.label}</Text>
+                  </View>
+                )}
+              </PressableScale>
+            </View>
+          ))}
+        </View>
+      </Panel>
+    </Reveal>
   );
 }
 

@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { Linking, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
-import type { BlurTargetRef } from '@/components/atmosphere/BlurTargetContext';
 import { useFooterBottom } from '@/components/Footer';
 import { DailyForecast } from '@/components/DailyForecast';
 import { HourlyForecast } from '@/components/HourlyForecast';
@@ -25,11 +24,9 @@ const SOURCE_URL = 'https://open-meteo.com/';
 export function CityPage({
   city,
   active,
-  onBlurTarget,
 }: {
   city: City;
   active: boolean;
-  onBlurTarget?: (ref: BlurTargetRef) => void;
 }) {
   const forecast = useWeatherStore((s) => s.entries[city.id]);
   const status = useWeatherStore((s) => s.status[city.id]);
@@ -57,7 +54,7 @@ export function CityPage({
 
   return (
     <ThemeProvider theme={theme}>
-      <Atmosphere condition={sky} active={active} onBlurTarget={onBlurTarget}>
+      <Atmosphere condition={sky} active={active}>
         {vm && forecast ? (
           <Content vm={vm} fetchedAt={forecast.fetchedAt} offset={forecast.utcOffsetSeconds} stale={status === 'error'} active={active} pulling={pulling} onPull={onPull} />
         ) : (

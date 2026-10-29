@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
-import { BlurTargetContext, type BlurTargetRef } from '@/components/atmosphere/BlurTargetContext';
 import { Footer } from '@/components/Footer';
 import PagerView from 'react-native-pager-view';
 import { PageDots } from '@/components/PageDots';
@@ -23,8 +22,6 @@ export default function MainScreen() {
   const pagerRef = useRef<PagerView>(null);
   const appActive = useAppActive();
   const [currentId, setCurrentId] = useState<string | null>(null);
-  // Небо активной страницы: цель размытия для футера, который лежит поверх пейджера
-  const [footerTarget, setFooterTarget] = useState<BlurTargetRef | null>(null);
 
   // Текущая страница хранится по id, а не по индексу: добавление города не должно её сдвигать.
   const index = Math.max(0, pages.findIndex((c) => c.id === currentId));
@@ -72,24 +69,22 @@ export default function MainScreen() {
       >
         {pages.map((c, i) => (
           <View key={c.id} style={styles.root} collapsable={false}>
-            <CityPage city={c} active={appActive && i === index} onBlurTarget={setFooterTarget} />
+            <CityPage city={c} active={appActive && i === index} />
           </View>
         ))}
       </PagerView>
       <ThemeProvider theme={footerTheme}>
-        <BlurTargetContext.Provider value={footerTarget}>
-          <Footer
-            onOpenCities={openCities}
-            dots={
-              <PageDots
-                count={pages.length}
-                current={index}
-                location={!!currentLocation}
-                label={ru.a11y.pageDots(city.name, index + 1, pages.length)}
-              />
-            }
-          />
-        </BlurTargetContext.Provider>
+        <Footer
+          onOpenCities={openCities}
+          dots={
+            <PageDots
+              count={pages.length}
+              current={index}
+              location={!!currentLocation}
+              label={ru.a11y.pageDots(city.name, index + 1, pages.length)}
+            />
+          }
+        />
       </ThemeProvider>
     </View>
   );

@@ -163,13 +163,13 @@ export function SplashOverlay({ fontsReady, mainReady, onMountMain }: Props) {
   // Подложка нужна, пока Skia не нарисовал первый кадр; с раскрытием неба остаётся только маска холста
   const baseStyle = useAnimatedStyle(() => ({ opacity: t.value < T.reveal ? 1 : 0 }));
   const horizonStyle = useAnimatedStyle(() => {
-    const rise = curve.glass(seg(t.value, T.rise, T.riseDur));
+    const rise = curve.out(seg(t.value, T.rise, T.riseDur));
     const out = away(seg(t.value, T.out, T.sceneOutDur));
     return { opacity: 1 - out, transform: [{ translateY: 320 * out }, { scaleX: 1 + 2.6 * rise + 1.4 * out }] };
   });
   const sunStyle = useAnimatedStyle(() => ({
     opacity: 1 - seg(t.value, T.out, 300),
-    transform: [{ translateY: -RISE * curve.glass(seg(t.value, T.rise, T.riseDur)) }],
+    transform: [{ translateY: -RISE * curve.out(seg(t.value, T.rise, T.riseDur)) }],
   }));
   const nameStyle = useAnimatedStyle(() => {
     const out = away(seg(t.value, T.out, T.nameOutDur));
@@ -238,7 +238,7 @@ function Word({
         transform: [{ translateY: 28 * (1 - p) }, { rotate: `${-6 * (1 - p)}deg` }, { scale: 0.9 + 0.1 * p }],
       };
     }
-    const p = curve.glass(seg(t.value, start, T.wordDur));
+    const p = curve.out(seg(t.value, start, T.wordDur));
     return { opacity: p, transform: [{ translateY: 22 * (1 - p) }] };
   });
   return (
@@ -260,10 +260,10 @@ function SunriseSky({ t, w, h, orb }: { t: SharedValue<number>; w: number; h: nu
 
   // Свет вдоль горизонта: эллипс 600×220, при подъёме взгляда уходит вниз и тает
   const dawnOpacity = useDerivedValue(
-    () => 0.42 * curve.glass(seg(t.value, T.rise, T.riseDur)) * (1 - away(seg(t.value, T.out, T.sceneOutDur))),
+    () => 0.42 * curve.out(seg(t.value, T.rise, T.riseDur)) * (1 - away(seg(t.value, T.out, T.sceneOutDur))),
   );
   const dawnTransform = useDerivedValue(() => {
-    const rise = curve.glass(seg(t.value, T.rise, T.riseDur));
+    const rise = curve.out(seg(t.value, T.rise, T.riseDur));
     const out = away(seg(t.value, T.out, T.sceneOutDur));
     const grow = 1 + 0.6 * out;
     return [
@@ -274,13 +274,13 @@ function SunriseSky({ t, w, h, orb }: { t: SharedValue<number>; w: number; h: nu
   });
 
   // Ореол поднимается вместе с солнцем
-  const haloC = useDerivedValue(() => vec(cx, cy - RISE * curve.glass(seg(t.value, T.rise, T.riseDur))));
+  const haloC = useDerivedValue(() => vec(cx, cy - RISE * curve.out(seg(t.value, T.rise, T.riseDur))));
   const haloOpacity = useDerivedValue(
-    () => 0.9 * curve.glass(seg(t.value, T.rise, T.riseDur)) * (1 - seg(t.value, T.out, 400)),
+    () => 0.9 * curve.out(seg(t.value, T.rise, T.riseDur)) * (1 - seg(t.value, T.out, 400)),
   );
 
   // Солнце летит в правый верхний угол и становится свечением неба (центр 0.8w на верхнем крае, r 0.35w)
-  const flyP = useDerivedValue(() => curve.glass(seg(t.value, T.out, 700)));
+  const flyP = useDerivedValue(() => curve.out(seg(t.value, T.out, 700)));
   const flyC = useDerivedValue(() => vec(cx + (0.8 * w - cx) * flyP.value, (cy - RISE) * (1 - flyP.value)));
   const flyR = useDerivedValue(() => {
     const appear = seg(t.value, T.out - 100, 100);

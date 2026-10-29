@@ -9,7 +9,6 @@ import { useWeatherAutoRefresh } from '@/features/weather/useWeatherAutoRefresh'
 import { setEntrancePhase } from '@/lib/entrance';
 import { ReduceMotionProvider } from '@/lib/useReduceMotion';
 import { fontAssets } from '@/theme/fontAssets';
-import { GlassModeProvider } from '@/theme/ThemeProvider';
 import { colors } from '@/theme/tokens';
 
 // Нативный сплэш держится, пока не нарисован слой SplashOverlay с тем же кадром. Слой прячет его
@@ -33,15 +32,13 @@ export default function RootLayout() {
 
   return (
     <ReduceMotionProvider>
-      <GlassModeProvider>
-        <StatusBar style="light" />
-        {fontsReady && mainMounted && (
-          <View style={{ flex: 1 }} onLayout={onMainLayout}>
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.night.skyBottom } }} />
-          </View>
-        )}
-        <SplashOverlay fontsReady={fontsReady} mainReady={mainReady} onMountMain={mountMain} />
-      </GlassModeProvider>
+      <StatusBar style="light" />
+      {fontsReady && mainMounted && (
+        <View style={{ flex: 1 }} onLayout={onMainLayout}>
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.night.skyBottom } }} />
+        </View>
+      )}
+      <SplashOverlay fontsReady={fontsReady} mainReady={mainReady} onMountMain={mountMain} />
     </ReduceMotionProvider>
   );
 }

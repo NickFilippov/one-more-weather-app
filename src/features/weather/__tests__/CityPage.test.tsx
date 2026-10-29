@@ -1,7 +1,6 @@
 import { configure, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { City } from '@/features/cities/types';
-import { GlassModeProvider } from '@/theme/ThemeProvider';
 import { rawOf } from '../__fixtures__/helpers';
 import { CityPage } from '../CityPage';
 import { mapForecast } from '../model/mapForecast';
@@ -25,10 +24,6 @@ jest.mock('@shopify/react-native-skia', () => {
     Skia: { PathBuilder: { Make: () => ({ moveTo() {}, lineTo() {}, build: () => ({}) }) } },
   };
 });
-jest.mock('expo-blur', () => {
-  const { View } = jest.requireActual('react-native');
-  return { BlurView: View, BlurTargetView: View };
-});
 
 configure({ defaultIncludeHiddenElements: true });
 
@@ -45,9 +40,7 @@ const metrics = { frame: { x: 0, y: 0, width: 402, height: 874 }, insets: { top:
 const renderPage = (active = true) =>
   render(
     <SafeAreaProvider initialMetrics={metrics}>
-      <GlassModeProvider>
-        <CityPage city={sochi} active={active} />
-      </GlassModeProvider>
+      <CityPage city={sochi} active={active} />
     </SafeAreaProvider>,
   );
 

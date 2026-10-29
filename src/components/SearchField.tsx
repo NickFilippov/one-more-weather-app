@@ -1,6 +1,6 @@
 import { StyleSheet, TextInput, View } from 'react-native';
-import { GlassPanel } from '@/components/glass/GlassPanel';
 import { UiIcon } from '@/components/icons/UiIcon';
+import { Panel } from '@/components/Panel';
 import { ru } from '@/i18n/ru';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -11,11 +11,11 @@ interface Props {
   onChangeText: (text: string) => void;
 }
 
-/** Поле поиска городов на толстом стекле. */
+/** Поле поиска городов в панели-пилюле. */
 export function SearchField({ value, onChangeText }: Props) {
   const { c } = useTheme();
   return (
-    <GlassPanel thick reveal={false} radius={radius.pill} style={styles.panel}>
+    <Panel radius={radius.pill} style={styles.panel}>
       <View style={styles.row}>
         <UiIcon name="search" size={20} color={c.textMuted} />
         <TextInput
@@ -36,7 +36,7 @@ export function SearchField({ value, onChangeText }: Props) {
           style={[styles.input, { fontSize: type.field.fontSize, fontWeight: type.field.fontWeight, color: c.text }]}
         />
       </View>
-    </GlassPanel>
+    </Panel>
   );
 }
 

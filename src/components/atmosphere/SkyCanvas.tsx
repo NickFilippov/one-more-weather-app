@@ -23,7 +23,7 @@ export function SkyCanvas({ condition, width, height, running }: SkyCanvasProps)
   return (
     <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
       {sunny && <Glow width={width} running={running} color={name === 'night' ? c.textMuted : c.sun} night={name === 'night'} />}
-      {cloudCount > 0 && <Clouds W={width} H={height} count={cloudCount} running={running} color={c.glassEdge} />}
+      {cloudCount > 0 && <Clouds W={width} H={height} count={cloudCount} running={running} color={c.cloud} />}
       {rainy && <Rain W={width} H={height} intensity={condition === 'storm' ? 1.6 : 1} running={running} color={c.rain} />}
     </Canvas>
   );

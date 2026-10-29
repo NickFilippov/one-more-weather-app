@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { GlassPanel } from '@/components/glass/GlassPanel';
+import { Panel } from '@/components/Panel';
+import { Reveal } from '@/components/Reveal';
 import { ru } from '@/i18n/ru';
 import { useTheme } from '@/theme/ThemeProvider';
 import { type } from '@/theme/typography';
@@ -22,47 +23,51 @@ export function SearchResults({ search, addedIds, onPick }: Props) {
     const busy = status === 'loading';
     const text = busy ? ru.cities.searching : status === 'error' ? ru.cities.searchError : ru.cities.nothingFound;
     return (
-      <GlassPanel group label={text}>
-        <View style={styles.message} accessibilityLiveRegion="polite">
-          {busy ? <ActivityIndicator color={c.text} /> : null}
-          <Text style={[type.body, styles.messageText, { color: c.text }]}>{text}</Text>
-        </View>
-      </GlassPanel>
+      <Reveal>
+        <Panel label={text}>
+          <View style={styles.message} accessibilityLiveRegion="polite">
+            {busy ? <ActivityIndicator color={c.text} /> : null}
+            <Text style={[type.body, styles.messageText, { color: c.text }]}>{text}</Text>
+          </View>
+        </Panel>
+      </Reveal>
     );
   }
 
   return (
-    <GlassPanel>
-      {results.map((r, i) => {
-        const added = addedIds.has(r.city.id);
-        const a11y = [r.city.name, r.sub, added ? ru.cities.alreadyAdded : ''].filter(Boolean).join(', ');
-        return (
-          <Pressable
-            key={r.city.id}
-            accessibilityRole="button"
-            accessibilityLabel={a11y}
-            onPress={() => onPick(r)}
-            style={({ pressed }) => [
-              styles.row,
-              i > 0 && { borderTopWidth: 1, borderTopColor: c.hairline },
-              pressed && { backgroundColor: c.glassFillStrong },
-            ]}
-          >
-            <View style={styles.title}>
-              <Text style={[type.label, { color: c.text }]} numberOfLines={1}>
-                {r.city.name}
-              </Text>
-              {r.sub ? (
-                <Text style={[type.micro, { color: c.textMuted }]} numberOfLines={1}>
-                  {r.sub}
+    <Reveal>
+      <Panel>
+        {results.map((r, i) => {
+          const added = addedIds.has(r.city.id);
+          const a11y = [r.city.name, r.sub, added ? ru.cities.alreadyAdded : ''].filter(Boolean).join(', ');
+          return (
+            <Pressable
+              key={r.city.id}
+              accessibilityRole="button"
+              accessibilityLabel={a11y}
+              onPress={() => onPick(r)}
+              style={({ pressed }) => [
+                styles.row,
+                i > 0 && { borderTopWidth: 1, borderTopColor: c.hairline },
+                pressed && { backgroundColor: c.panelStrong },
+              ]}
+            >
+              <View style={styles.title}>
+                <Text style={[type.label, { color: c.text }]} numberOfLines={1}>
+                  {r.city.name}
                 </Text>
-              ) : null}
-            </View>
-            {added ? <Text style={[type.micro, { color: c.textMuted }]}>{ru.cities.alreadyAdded}</Text> : null}
-          </Pressable>
-        );
-      })}
-    </GlassPanel>
+                {r.sub ? (
+                  <Text style={[type.micro, { color: c.textMuted }]} numberOfLines={1}>
+                    {r.sub}
+                  </Text>
+                ) : null}
+              </View>
+              {added ? <Text style={[type.micro, { color: c.textMuted }]}>{ru.cities.alreadyAdded}</Text> : null}
+            </Pressable>
+          );
+        })}
+      </Panel>
+    </Reveal>
   );
 }
 
