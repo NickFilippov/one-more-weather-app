@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
 import { BlurTargetContext, type BlurTargetRef } from '@/components/atmosphere/BlurTargetContext';
 import { Footer } from '@/components/Footer';
@@ -8,7 +8,6 @@ import PagerView from 'react-native-pager-view';
 import { PageDots } from '@/components/PageDots';
 import { StatePanel } from '@/components/StatePanel';
 import { useCitiesStore } from '@/features/cities/citiesStore';
-import { useUiStore } from '@/features/cities/uiStore';
 import { CityPage } from '@/features/weather/CityPage';
 import { themeOf } from '@/features/weather/model/viewModels';
 import { useWeatherStore } from '@/features/weather/weatherStore';
@@ -34,21 +33,15 @@ export default function MainScreen() {
   const forecast = useWeatherStore((s) => (city ? s.entries[city.id] : undefined));
   const footerTheme = forecast ? themeOf(forecast) : 'night';
 
-  // Экран городов просит открыть конкретный город: подписка, а не эффект на состояние.
-  useEffect(
-    () =>
-      useUiStore.subscribe((ui) => {
-        const id = ui.activeCityId;
-        if (!id) return;
-        const i = pages.findIndex((c) => c.id === id);
-        if (i >= 0) {
-          pagerRef.current?.setPage(i);
-          setCurrentId(id);
-        }
-        ui.setActiveCityId(null);
-      }),
-    [pages],
-  );
+  // Экран городов возвращается сюда с параметром city: листаем к этому городу (currentId обновит
+  // onPageSelected) и сбрасываем параметр, чтобы повторный выбор того же города тоже сработал.
+  const { city: requested } = useLocalSearchParams<{ city?: string }>();
+  useEffect(() => {
+    if (!requested) return;
+    const i = pages.findIndex((c) => c.id === requested);
+    if (i >= 0) pagerRef.current?.setPage(i);
+    router.setParams({ city: undefined });
+  }, [requested, pages]);
 
   const openCities = useCallback(() => router.push('/cities'), []);
 

@@ -13,7 +13,6 @@ import type { City } from '@/features/cities/types';
 import { ru } from '@/i18n/ru';
 import { formatClock } from '@/lib/format';
 import { cityClock } from '@/lib/time';
-import { useMinuteTick } from '@/lib/useMinuteTick';
 import { useReduceMotion } from '@/lib/useReduceMotion';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { type } from '@/theme/typography';
@@ -36,11 +35,15 @@ export function CityPage({
   const status = useWeatherStore((s) => s.status[city.id]);
   const error = useWeatherStore((s) => s.error[city.id]);
   const refresh = useWeatherStore((s) => s.refresh);
-  const minute = useMinuteTick(active);
+  const [openedAt] = useState(Date.now);
   const [pulling, setPulling] = useState(false);
 
-  // «Сейчас» с точностью до минуты: от него зависят ближайшие восход и закат в плитках
-  const vm = useMemo(() => (forecast ? buildMainVM(city, forecast, minute * 60) : null), [forecast, city, minute]);
+  // «Сейчас» — момент открытия страницы или последнего обновления данных, что позже: прогноз
+  // обновляется при запуске и возврате в приложение, если он старше 30 минут
+  const vm = useMemo(() => {
+    if (!forecast) return null;
+    return buildMainVM(city, forecast, Math.floor(Math.max(openedAt, forecast.fetchedAt) / 1000));
+  }, [forecast, city, openedAt]);
 
   const retry = useCallback(() => void refresh(city, { force: true }), [refresh, city]);
   const onPull = useCallback(async () => {

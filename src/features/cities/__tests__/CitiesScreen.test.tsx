@@ -6,13 +6,12 @@ import { useWeatherStore } from '@/features/weather/weatherStore';
 import { GlassModeProvider } from '@/theme/ThemeProvider';
 import { useCitiesStore } from '../citiesStore';
 import { searchCities } from '../geocodingApi';
-import { useUiStore } from '../uiStore';
 
 jest.mock('expo-sqlite/kv-store', () => ({
   __esModule: true,
   default: { getItem: async () => null, setItem: async () => {}, removeItem: async () => {} },
 }));
-jest.mock('expo-router', () => ({ router: { back: jest.fn() } }));
+jest.mock('expo-router', () => ({ router: { back: jest.fn(), dismissTo: jest.fn() } }));
 jest.mock('../geocodingApi');
 // Задержку ввода проверяет тест useCitySearch; здесь она мешает: фейковые таймеры ломают анимации
 jest.mock('@/lib/useDebouncedValue', () => ({ useDebouncedValue: <T,>(v: T) => v }));
@@ -57,13 +56,12 @@ describe('экран городов', () => {
   const refresh = jest.fn(async () => {});
 
   beforeEach(() => {
-    jest.mocked(router.back).mockReset();
+    jest.mocked(router.dismissTo).mockReset();
     mockSearch.mockReset();
     mockSearch.mockResolvedValue({ ok: true, data: [{ city: kazan, sub: 'Татарстан, Россия' }] });
     refresh.mockClear();
     useCitiesStore.setState({ currentLocation: null, saved: [] });
     useWeatherStore.setState({ entries: {}, status: {}, error: {}, refresh });
-    useUiStore.setState({ activeCityId: null });
   });
 
   it('найденный город добавляется, грузит погоду, поле очищается, появляется карточка', async () => {
@@ -84,8 +82,7 @@ describe('экран городов', () => {
     expect(screen.getByText('Уже в списке')).toBeTruthy();
     await fireEvent.press(screen.getByLabelText('Казань, Татарстан, Россия, Уже в списке'));
     expect(useCitiesStore.getState().saved).toHaveLength(1);
-    expect(useUiStore.getState().activeCityId).toBe(kazan.id);
-    expect(router.back).toHaveBeenCalled();
+    expect(router.dismissTo).toHaveBeenCalledWith({ pathname: '/', params: { city: kazan.id } });
   });
 
   it('нажатие на карточку делает город активным и возвращает на главный', async () => {
@@ -93,8 +90,8 @@ describe('экран городов', () => {
     useWeatherStore.setState({ status: { [kazan.id]: 'error' } });
     await renderScreen();
     await fireEvent.press(screen.getByLabelText('Казань, нет данных'));
-    expect(useUiStore.getState().activeCityId).toBe(kazan.id);
-    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.dismissTo).toHaveBeenCalledTimes(1);
+    expect(router.dismissTo).toHaveBeenCalledWith({ pathname: '/', params: { city: kazan.id } });
   });
 
   it('ничего не найдено', async () => {

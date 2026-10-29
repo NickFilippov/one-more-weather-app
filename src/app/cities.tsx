@@ -9,12 +9,10 @@ import { SearchField } from '@/components/SearchField';
 import { selectPages, useCitiesStore } from '@/features/cities/citiesStore';
 import type { SearchResult } from '@/features/cities/geocodingApi';
 import { SearchResults } from '@/features/cities/SearchResults';
-import { useUiStore } from '@/features/cities/uiStore';
 import { useCitySearch } from '@/features/cities/useCitySearch';
 import { buildCityCardVM } from '@/features/weather/model/viewModels';
 import { useWeatherStore } from '@/features/weather/weatherStore';
 import { ru } from '@/i18n/ru';
-import { useMinuteTick } from '@/lib/useMinuteTick';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { duration } from '@/theme/tokens';
 import { type } from '@/theme/typography';
@@ -37,23 +35,20 @@ function Body() {
   const entries = useWeatherStore((s) => s.entries);
   const status = useWeatherStore((s) => s.status);
   const refresh = useWeatherStore((s) => s.refresh);
-  // Местное время в подписях карточек обновляется раз в минуту, пока экран открыт
-  const minute = useMinuteTick(true);
+  // Местное время в подписях карточек — на момент открытия экрана
+  const [openedAt] = useState(Date.now);
   const [text, setText] = useState('');
   const search = useCitySearch(text);
 
   const pages = useMemo(() => selectPages({ currentLocation, saved }), [currentLocation, saved]);
   const addedIds = useMemo(() => new Set(pages.map((city) => city.id)), [pages]);
   const cards = useMemo(
-    () => pages.map((city) => buildCityCardVM(city, entries[city.id], minute * 60, status[city.id] === 'error')),
-    [pages, entries, status, minute],
+    () => pages.map((city) => buildCityCardVM(city, entries[city.id], Math.floor(openedAt / 1000), status[city.id] === 'error')),
+    [pages, entries, status, openedAt],
   );
 
-  // Главный экран подписан на activeCityId и сам листает к городу
-  const open = useCallback((id: string) => {
-    useUiStore.getState().setActiveCityId(id);
-    router.back();
-  }, []);
+  // Назад на главный экран с параметром city: он сам листает к этому городу
+  const open = useCallback((id: string) => router.dismissTo({ pathname: '/', params: { city: id } }), []);
 
   const pick = useCallback(
     (r: SearchResult) => {
