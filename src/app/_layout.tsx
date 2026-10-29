@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -11,27 +12,39 @@ import { fontAssets } from '@/theme/fontAssets';
 import { GlassModeProvider } from '@/theme/ThemeProvider';
 import { colors } from '@/theme/tokens';
 
-// Нативный сплэш держится, пока не загружены шрифты. Дальше его кадр подхватывает SplashOverlay:
-// он сам прячет нативный сплэш, а главный экран под ним ждёт своей фазы появления.
+// Нативный сплэш держится, пока не нарисован слой SplashOverlay с тем же кадром. Слой прячет его
+// и сразу начинает восход. Главный экран монтируется, когда кадр сплэша собран и неподвижен,
+// и ждёт своей фазы появления.
 void SplashScreen.preventAutoHideAsync();
 if (animatedSplash) setEntrancePhase('cover');
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets);
+  const fontsReady = loaded || !!error;
+  // Тяжёлый монтаж главного экрана (на Android около секунды) не должен рвать анимацию сплэша
+  const [mainMounted, setMainMounted] = useState(!animatedSplash);
+  const [mainReady, setMainReady] = useState(false);
+  const mountMain = useCallback(() => setMainMounted(true), []);
+  // Раскладка готова; ещё два кадра, чтобы нативные виды успели нарисоваться
+  const onMainLayout = useCallback(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => setMainReady(true)));
+  }, []);
   useWeatherAutoRefresh();
 
   useEffect(() => {
-    if (!animatedSplash && (loaded || error)) SplashScreen.hide();
-  }, [loaded, error]);
-
-  if (!loaded && !error) return null;
+    if (!animatedSplash && fontsReady) SplashScreen.hide();
+  }, [fontsReady]);
 
   return (
     <ReduceMotionProvider>
       <GlassModeProvider>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.night.skyBottom } }} />
-        <SplashOverlay />
+        {fontsReady && mainMounted && (
+          <View style={{ flex: 1 }} onLayout={onMainLayout}>
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.night.skyBottom } }} />
+          </View>
+        )}
+        <SplashOverlay fontsReady={fontsReady} mainReady={mainReady} onMountMain={mountMain} />
       </GlassModeProvider>
     </ReduceMotionProvider>
   );

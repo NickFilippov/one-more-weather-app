@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { Canvas, Circle, Group, RadialGradient, Rect, rect, vec } from '@shopify/react-native-skia';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,11 +7,13 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useDerivedValue,
+  useFrameCallback,
   useSharedValue,
   withDelay,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCitiesStore } from '@/features/cities/citiesStore';
 import { themeOf } from '@/features/weather/model/viewModels';
@@ -20,7 +22,7 @@ import { setEntranceOrigin, setEntrancePhase, useEntrancePhase } from '@/lib/ent
 import { font } from '@/theme/fonts';
 import { curve } from '@/theme/motion';
 import { colors } from '@/theme/tokens';
-import { scheduleSplash, STILL, T } from './timeline';
+import { scheduleStillSplash, STILL, T } from './timeline';
 
 /** На телефонах сплэш анимированный; в веб-превью его нет (SplashOverlay.web.tsx). */
 export const animatedSplash = true;
@@ -34,6 +36,8 @@ const HORIZON = ['rgba(244,247,255,0)', 'rgba(244,247,255,0.9)', 'rgba(244,247,2
 const HORIZON_W = 120;
 const SUN_D = 28;
 const RISE = 34;
+// Шаг часов сплэша за кадр, мс: два кадра при 60 Гц
+const MAX_STEP = 34;
 
 // Сцена уходит с ускорением; тьма отступает плавно
 const away = Easing.bezierFn(0.55, 0, 0.75, 0.3);
@@ -67,35 +71,87 @@ function queryReduceMotion(): Promise<boolean> {
  * восход, название по словам, затем небо раскрывается от точки восхода. Главный экран
  * под ним уже смонтирован и появляется по фазам из src/lib/entrance.ts.
  */
-export function SplashOverlay() {
+interface Props {
+  /** Шрифт названия загружен: до этого слова не рисуются. */
+  fontsReady: boolean;
+  /** Главный экран смонтирован и нарисован: после паузы `hold` можно продолжать. */
+  mainReady: boolean;
+  /** Пора монтировать главный экран: кадр сплэша собран и неподвижен. */
+  onMountMain: () => void;
+}
+
+export function SplashOverlay({ fontsReady, mainReady, onMountMain }: Props) {
   const phase = useEntrancePhase();
   const orb = useOrbColor();
   const insets = useSafeAreaInsets();
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [still, setStill] = useState(false);
+  const [held, setHeld] = useState(false);
+  const [holdTimedOut, setHoldTimedOut] = useState(false);
   const t = useSharedValue(0);
   const fade = useSharedValue(1);
+  // До паузы hold часы идут сами; дальше — только когда главный экран готов
+  const pastHold = useSharedValue(false);
   const laidOut = size !== null;
 
+  // Монтаж главного экрана занимает поток отрисовки (замер 2026-10-29, release на симуляторах:
+  // iOS около 1.2 с, Android 1–2.5 с). Во время восхода анимация от этого замирала на полуслове,
+  // поэтому экран монтируется в паузе hold, когда кадр собран и неподвижен.
+  const reachHold = useCallback(() => {
+    setHeld(true);
+    onMountMain();
+  }, [onMountMain]);
+
+  // Покадровые часы: за кадр не больше MAX_STEP. Если поток отрисовки завис (первый холст Skia,
+  // монтаж главного экрана), анимация встаёт и продолжает с того же места, а не перескакивает.
+  // Фазы появления тоже идут по этим часам: по настенному таймеру слой снимался посреди ухода сцены.
+  const clock = useFrameCallback((frame) => {
+    const step = Math.min(frame.timeSincePreviousFrame ?? 16, MAX_STEP);
+    const prev = t.value;
+    const next = Math.min(prev + step, pastHold.value ? T.end : T.hold);
+    t.value = next;
+    if (prev < T.hold && next >= T.hold) scheduleOnRN(reachHold);
+    if (prev < T.gate && next >= T.gate) scheduleOnRN(setEntrancePhase, 'reveal');
+    if (prev < T.end && next >= T.end) scheduleOnRN(setEntrancePhase, 'done');
+  }, false);
+
+  // Восход и название: начинаются сразу, без ожидания, неподвижный кадр выглядит как зависание
   useEffect(() => {
     if (!laidOut) return;
     let alive = true;
     let cancel = () => {};
+    clock.setActive(true);
     // Слой уже нарисован и выглядит как нативная заставка: прячем её
     const frame = requestAnimationFrame(() => SplashScreen.hide());
     void queryReduceMotion().then((reduce) => {
-      if (!alive) return;
-      setStill(reduce);
-      if (reduce) fade.set(withDelay(STILL.hold, withTiming(0, { duration: STILL.fade })));
-      else t.set(withTiming(T.end, { duration: T.end, easing: Easing.linear }));
-      cancel = scheduleSplash(reduce, setEntrancePhase);
+      if (!alive || !reduce) return;
+      // «Уменьшение движения»: возвращаем кадр заставки, он стоит и гаснет
+      clock.setActive(false);
+      t.set(0);
+      setStill(true);
+      onMountMain();
+      fade.set(withDelay(STILL.hold, withTiming(0, { duration: STILL.fade })));
+      cancel = scheduleStillSplash(setEntrancePhase);
     });
     return () => {
       alive = false;
       cancelAnimationFrame(frame);
       cancel();
     };
-  }, [laidOut, t, fade]);
+  }, [laidOut, t, fade, onMountMain]); // eslint-disable-line react-hooks/exhaustive-deps -- clock стабилен
+
+  // Пауза не дольше maxHold: если главный экран не ответил, сплэш всё равно уходит
+  useEffect(() => {
+    if (!held) return;
+    const timer = setTimeout(() => setHoldTimedOut(true), T.maxHold);
+    return () => clearTimeout(timer);
+  }, [held]);
+
+  // Главный экран нарисован: камера поднимает взгляд, небо раскрывается
+  const proceed = held && (mainReady || holdTimedOut);
+  useEffect(() => {
+    if (proceed) pastHold.set(true);
+  }, [proceed, pastHold]);
 
   // Слой сняли раньше времени: экран под ним не должен остаться невидимым
   useEffect(() => () => setEntrancePhase('done'), []);
@@ -148,14 +204,16 @@ export function SplashOverlay() {
           </View>
         </>
       )}
-      <Animated.View style={[styles.name, { bottom: Math.max(insets.bottom, 28) + 84 }, nameStyle]}>
-        <Word t={t} start={T.words[0]} still={still}>One</Word>
-        <Word t={t} start={T.words[1]} still={still}>More</Word>
-        <Word t={t} start={T.words[2]} still={still} accent>
-          Weather
-        </Word>
-        <Word t={t} start={T.words[3]} still={still}>App</Word>
-      </Animated.View>
+      {fontsReady && (
+        <Animated.View style={[styles.name, { bottom: Math.max(insets.bottom, 28) + 84 }, nameStyle]}>
+          <Word t={t} start={T.words[0]} still={still}>One</Word>
+          <Word t={t} start={T.words[1]} still={still}>More</Word>
+          <Word t={t} start={T.words[2]} still={still} accent>
+            Weather
+          </Word>
+          <Word t={t} start={T.words[3]} still={still}>App</Word>
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }

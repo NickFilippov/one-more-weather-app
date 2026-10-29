@@ -3,7 +3,7 @@ import { act, render, screen } from '@testing-library/react-native';
 import { TempHero } from '@/components/TempHero';
 import { ENTRANCE_SHIFT, setEntrancePhase, useEntrance, type EntrancePhase } from '@/lib/entrance';
 import { ThemeProvider } from '@/theme/ThemeProvider';
-import { scheduleSplash, STILL, T } from '../timeline';
+import { scheduleStillSplash, STILL, T } from '../timeline';
 
 afterEach(() => {
   jest.useRealTimers();
@@ -20,23 +20,20 @@ describe('сценарий сплэша', () => {
     expect(T.out + T.sceneOutDur + 200).toBeLessThanOrEqual(T.end);
   });
 
-  it('фазы появления переключаются по таймерам', () => {
-    jest.useFakeTimers();
-    const phases: EntrancePhase[] = [];
-    scheduleSplash(false, (p) => phases.push(p));
-    jest.advanceTimersByTime(T.gate - 1);
-    expect(phases).toEqual([]);
-    jest.advanceTimersByTime(1);
-    expect(phases).toEqual(['reveal']);
-    jest.advanceTimersByTime(T.end - T.gate);
-    expect(phases).toEqual(['reveal', 'done']);
+  it('пауза для монтажа экрана — в неподвижном кадре: название собрано, сцена ещё не уходит', () => {
+    expect(T.rise + T.riseDur).toBeLessThanOrEqual(T.hold);
+    expect(T.words[2] + T.accentDur).toBeLessThanOrEqual(T.hold);
+    expect(T.words[3] + T.wordDur).toBeLessThanOrEqual(T.hold);
+    expect(T.hold).toBeLessThan(T.gate);
   });
 
   it('при «Уменьшении движения» кадр стоит и гаснет', () => {
     jest.useFakeTimers();
     const phases: EntrancePhase[] = [];
-    scheduleSplash(true, (p) => phases.push(p));
-    jest.advanceTimersByTime(STILL.hold);
+    scheduleStillSplash((p) => phases.push(p));
+    jest.advanceTimersByTime(STILL.hold - 1);
+    expect(phases).toEqual([]);
+    jest.advanceTimersByTime(1);
     expect(phases).toEqual(['reveal']);
     jest.advanceTimersByTime(STILL.fade);
     expect(phases).toEqual(['reveal', 'done']);
@@ -45,9 +42,9 @@ describe('сценарий сплэша', () => {
   it('отмена снимает таймеры', () => {
     jest.useFakeTimers();
     const phases: EntrancePhase[] = [];
-    const cancel = scheduleSplash(false, (p) => phases.push(p));
+    const cancel = scheduleStillSplash((p) => phases.push(p));
     cancel();
-    jest.advanceTimersByTime(T.end);
+    jest.advanceTimersByTime(STILL.hold + STILL.fade);
     expect(phases).toEqual([]);
   });
 });
