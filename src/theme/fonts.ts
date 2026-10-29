@@ -9,4 +9,5 @@ export const font = {
   thin: `BricolageGrotesque_200ExtraLight${webFallback}`,
   light: `BricolageGrotesque_300Light${webFallback}`,
   medium: `BricolageGrotesque_500Medium${webFallback}`,
+  semibold: `BricolageGrotesque_600SemiBold${webFallback}`,
 } as const;

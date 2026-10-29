@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+import { useEntrance } from '@/lib/entrance';
 import { useReduceMotion } from '@/lib/useReduceMotion';
 import { ease } from '@/theme/motion';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -22,6 +23,7 @@ interface Props {
 export function TempBar({ low, high, min, max, now, index }: Props) {
   const { c } = useTheme();
   const reduce = useReduceMotion();
+  const { ready, shift } = useEntrance();
   const [w, setW] = useState(0);
   const span = Math.max(1, max - min);
   const left = (low - min) / span;
@@ -30,15 +32,15 @@ export function TempBar({ low, high, min, max, now, index }: Props) {
   const grow = useSharedValue(0);
   const pop = useSharedValue(0);
   useEffect(() => {
-    if (w === 0) return;
+    if (w === 0 || !ready) return;
     if (reduce) {
       grow.value = withTiming(1, { duration: duration.ui });
       pop.value = 1;
       return;
     }
-    grow.value = withDelay(index * duration.stagger + 320, withTiming(1, { duration: duration.reveal, easing: ease.spring }));
-    pop.value = withDelay(700, withTiming(1, { duration: duration.ui, easing: ease.spring }));
-  }, [w > 0, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
+    grow.value = withDelay(index * duration.stagger + 320 + shift, withTiming(1, { duration: duration.reveal, easing: ease.spring }));
+    pop.value = withDelay(700 + shift, withTiming(1, { duration: duration.ui, easing: ease.spring }));
+  }, [w > 0, reduce, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fillStyle = useAnimatedStyle(() => ({
     opacity: reduce ? grow.value : 0.4 + 0.6 * grow.value,

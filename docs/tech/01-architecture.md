@@ -33,10 +33,11 @@ flowchart TB
     CStore["cities/citiesStore<br/>список, порядок, местоположение"]
     CSearch["cities/useCitySearch<br/>+ geocodingApi"]
     CLoc["cities/useCurrentLocation"]
+    Splash["splash/SplashOverlay<br/>сплэш «Восход»"]
   end
 
   subgraph BASE["основа"]
-    Lib["src/lib<br/>format, time, storage, http,<br/>useReduceMotion, useAppActive"]
+    Lib["src/lib<br/>format, time, storage, http,<br/>useReduceMotion, useAppActive,<br/>entrance (фазы появления)"]
     Theme["src/theme<br/>tokens, typography, motion,<br/>ThemeProvider, glassMode"]
     I18n["src/i18n/ru.ts"]
   end
@@ -48,7 +49,8 @@ flowchart TB
     KV[("expo-sqlite/kv-store")]
   end
 
-  Layout --> Main & Cities
+  Layout --> Main & Cities & Splash
+  Splash --> WStore & CStore & Lib
   Main --> COMP
   Cities --> COMP
   Main --> WStore & CStore & WModel
@@ -83,10 +85,12 @@ flowchart TB
 
 | Файл | Что делает |
 | --- | --- |
-| `src/app/_layout.tsx` | Держит сплэш, пока грузятся шрифты. Оборачивает приложение в `SafeAreaProvider`. Ставит `<StatusBar style="light" />`. Объявляет `Stack` с `headerShown: false` и `contentStyle` цвета `sky-bottom`. Запускает `useWeatherAutoRefresh()`. |
+| `src/app/_layout.tsx` | Держит нативный сплэш, пока грузятся шрифты, и ставит фазу появления `cover`. Оборачивает приложение в `SafeAreaProvider`. Ставит `<StatusBar style="light" />`. Объявляет `Stack` с `headerShown: false` и `contentStyle` цвета `sky-bottom`, поверх него `SplashOverlay`. Запускает `useWeatherAutoRefresh()`. |
 | `src/app/index.tsx` | Главный экран. Берёт список страниц из `citiesStore` (местоположение + сохранённые), рисует `PagerView`, в каждой странице `CityPage`. Футер лежит поверх pager и не листается. Пустой список даёт стартовое состояние ([03](03-domain-and-rules.md#состояния-экрана)). |
 | `src/app/cities.tsx` | Список городов: шапка (назад, правка), заголовок, поле поиска. Пустое поле показывает карточки городов, непустое показывает результаты поиска. Нажатие на карточку делает город активным и возвращает назад. |
 | `src/app/map.tsx` | Этап 8, карта осадков. До этого кнопка карты скрыта или неактивна ([05](05-implementation-plan.md#этап-8-после-первой-версии)). |
+
+`SplashOverlay` (`src/features/splash/SplashOverlay.tsx`) — анимированный сплэш «Восход» поверх всего приложения ([04](04-ui-spec.md#сплэш-восход)). Берёт тему первой страницы из сторов, поэтому тоже живёт в `features`. Главный экран под ним узнаёт, когда появляться, из `src/lib/entrance.ts`: это маленький стор без данных, его могут читать и компоненты.
 
 `CityPage` (`src/features/weather/CityPage.tsx`) — экранный блок одного города: `ThemeProvider` с темой города, `Atmosphere`, `ScrollView` с `RefreshControl`, внутри `TempHero`, `HourlyForecast`, `DailyForecast`, `Tiles`, подпись источника. Он связывает `weatherStore` с компонентами, поэтому живёт в `features`, а не в `components`.
 
