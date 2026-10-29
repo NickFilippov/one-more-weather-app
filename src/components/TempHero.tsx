@@ -100,7 +100,7 @@ function useFlyIn(ref: RefObject<ComponentRef<typeof View> | null>, enabled: boo
   return { onLayout, style };
 }
 
-/** Город, температура, состояние, диапазон дня. Ставится прямо на небо, без стекла. */
+/** Город, температура, состояние, диапазон дня. Ставится прямо на небо, без панели. */
 export function TempHero({ place, temp, condition, high, low, active }: Props) {
   const { c } = useTheme();
   const reduce = useReduceMotion();
