@@ -22,7 +22,7 @@ flowchart TB
 
   subgraph COMP["src/components — UI без данных"]
     Atmos["Atmosphere<br/>небо, облака, дождь"]
-    Glass["GlassPanel, GlassButton"]
+    Panels["Panel, RoundButton, PressableScale, Reveal"]
     Blocks["TempHero, HourlyForecast,<br/>DailyForecast, Tiles, PageDots,<br/>Footer, CityCard, SearchField,<br/>StatePanel, WeatherIcon"]
   end
 
@@ -38,7 +38,7 @@ flowchart TB
 
   subgraph BASE["основа"]
     Lib["src/lib<br/>format, time, storage, http,<br/>useReduceMotion, useAppActive,<br/>entrance (фазы появления)"]
-    Theme["src/theme<br/>tokens, typography, motion,<br/>ThemeProvider, glassMode"]
+    Theme["src/theme<br/>tokens, typography, motion,<br/>ThemeProvider"]
     I18n["src/i18n/ru.ts"]
   end
 
@@ -126,7 +126,7 @@ interface WeatherState {
 }
 ```
 
-`uiStore` (не сохраняется): `activeCityId: string | null`, `setActiveCityId(id)`. Через него экран городов говорит главному, какую страницу открыть.
+Отдельного стора для связи экранов нет: экран городов возвращается на главный с параметром маршрута `city` (`router.dismissTo({ pathname: '/', params: { city } })`).
 
 ### Логика погоды (`src/features/weather/model`)
 
@@ -207,14 +207,14 @@ flowchart LR
 flowchart LR
   Main["/ (index.tsx)<br/>PagerView городов"] -- "кнопка списка<br/>router.push('/cities')" --> Cities["/cities"]
   Cities -- "Назад, жест<br/>router.back()" --> Main
-  Cities -- "карточка города<br/>setActiveCityId + router.back()" --> Main
+  Cities -- "карточка города<br/>router.dismissTo('/', { city })" --> Main
   Cities -- "результат поиска<br/>addCity, очистить поле" --> Cities
   Main -- "свайп" --> Main
   Main -. "этап 8: кнопка карты<br/>router.push('/map')" .-> Map["/map"]
 ```
 
-- `Stack` без заголовков: шапки рисуют сами экраны (круглые стеклянные кнопки).
-- Главный экран при изменении `activeCityId` вызывает `pagerRef.current?.setPage(index)`, а `onPageSelected` записывает индекс в локальное состояние для `PageDots`.
+- `Stack` без заголовков: шапки рисуют сами экраны (круглые кнопки `RoundButton`).
+- Главный экран читает параметр `city` (`useLocalSearchParams`), вызывает `pagerRef.current?.setPage(index)` и сбрасывает параметр (`router.setParams`); `onPageSelected` записывает текущий город в локальное состояние для `PageDots`.
 - Системный жест «назад» работает на обеих платформах. В `app.json` стоит `predictiveBackGestureEnabled: false`, не трогай это.
 
 ## Дерево главного экрана
@@ -227,22 +227,21 @@ flowchart TB
   Pager --> PageN["CityPage город N"]
   Page1 --> TP["ThemeProvider theme=day|night"]
   TP --> Atm["Atmosphere condition, active"]
-  Atm --> Target["BlurTargetView: градиент + Skia-холст"]
+  Atm --> Sky["градиент + Skia-холст"]
   Atm --> Scroll["ScrollView + RefreshControl"]
   Scroll --> Hero["TempHero"]
-  Scroll --> Hourly["HourlyForecast (GlassPanel)"]
-  Scroll --> Daily["DailyForecast (GlassPanel)"]
-  Scroll --> Tiles["Tiles: 4 × GlassPanel"]
+  Scroll --> Hourly["HourlyForecast (Panel)"]
+  Scroll --> Daily["DailyForecast (Panel)"]
+  Scroll --> Tiles["Tiles: 4 × Panel"]
   Scroll --> Attr["Подпись «Данные: Open-Meteo.com»"]
-  Footer --> BMap["GlassButton «Карта осадков»"]
-  Footer --> Pill["GlassPanel thick, пилюля → PageDots"]
-  Footer --> BList["GlassButton «Список городов»"]
+  Footer --> BMap["RoundButton «Карта осадков»"]
+  Footer --> Pill["Panel-пилюля → PageDots"]
+  Footer --> BList["RoundButton «Список городов»"]
 ```
 
 - У каждой страницы своё небо и своя тема: при свайпе небо уезжает вместе с городом.
 - `active` у `Atmosphere` истинно только у видимой страницы и только когда приложение активно (`useAppActive`). Остальные страницы рисуют неподвижный кадр (NFR-06).
 - Футер берёт тему активной страницы.
-- `ScrollView` — сосед `BlurTargetView`, а не потомок. На Android только так `BlurView` в панелях размывает небо ([04](04-ui-spec.md#glasspanel)).
 
 ## Структура папок
 
@@ -253,30 +252,31 @@ src/
     index.tsx
     cities.tsx
   components/
-    atmosphere/      Atmosphere.tsx, SkyEffects.tsx (+ .web.tsx), SkyCanvas.tsx, Glow.tsx, Clouds.tsx, Rain.tsx, BlurTargetContext.ts
-    glass/           GlassPanel.tsx, GlassButton.tsx, PressableScale.tsx, useReveal.ts
-    Pager.tsx  Pager.web.tsx          страницы городов: PagerView; в вебе ScrollView (только превью)
+    atmosphere/      Atmosphere.tsx, SkyCanvas.tsx, Glow.tsx, Clouds.tsx, Rain.tsx
+    Panel.tsx  RoundButton.tsx  PressableScale.tsx  Reveal.tsx
     icons/           WeatherIcon.tsx, UiIcon.tsx (назад, ещё, карта, список, поиск)
     TempHero.tsx  HourlyForecast.tsx  DailyForecast.tsx  TempBar.tsx  Tiles.tsx
     PageDots.tsx  Footer.tsx  CityCard.tsx  SearchField.tsx  StatePanel.tsx
-    PanelHeader.tsx  Reveal.tsx
+    PanelHeader.tsx
   features/
     weather/
       api.ts  schema.ts  types.ts  weatherStore.ts  useWeatherAutoRefresh.ts  CityPage.tsx
+    splash/
+      SplashOverlay.tsx  timeline.ts
       model/  mapForecast.ts  conditions.ts  summary.ts  tiles.ts  viewModels.ts
       __tests__/  __fixtures__/
     cities/
-      types.ts  citiesStore.ts  uiStore.ts  geocodingApi.ts  useCitySearch.ts  useCurrentLocation.ts
+      types.ts  citiesStore.ts  geocodingApi.ts  useCitySearch.ts  SearchResults.tsx
       __tests__/
   lib/
-    format.ts  time.ts  http.ts  storage.ts  useReduceMotion.ts  useAppActive.ts  useDebouncedValue.ts
+    format.ts  time.ts  http.ts  storage.ts  entrance.ts  useReduceMotion.tsx  useAppActive.ts  useDebouncedValue.ts  useLoopValue.ts
     __tests__/
   theme/
-    tokens.ts  typography.ts  motion.ts  ThemeProvider.tsx  glassMode.ts  fonts.ts
+    tokens.ts  typography.ts  motion.ts  ThemeProvider.tsx  fonts.ts  fontAssets.ts
   i18n/
     ru.ts
   mocks/
-    mainScreens.ts  citiesList.ts   (данные макетов для этапов 2–3)
+    mainScreens.ts  citiesList.ts   (данные макетов, их используют тесты)
 ```
 
 Алиас `@/*` → `./src/*` в `tsconfig.json`. Импорты пиши через него: `import { tokens } from '@/theme/tokens'`.
@@ -290,8 +290,6 @@ src/
 | `expo-router`, `react-native-safe-area-context`, `react-native-screens`, `expo-linking`, `expo-constants`, `expo-status-bar` | навигация, safe area |
 | `expo-dev-client` | development build |
 | `react-native-reanimated`, `react-native-worklets` | все анимации |
-| `expo-glass-effect` | Liquid Glass на iOS 26+ |
-| `expo-blur` | матовое стекло без Liquid Glass |
 | `expo-linear-gradient` | градиент неба, шкала температур |
 | `@shopify/react-native-skia` | свечение, облака, дождь |
 | `react-native-svg` | иконки погоды и интерфейса |
@@ -304,4 +302,4 @@ src/
 | `jest-expo`, `jest`, `@types/jest`, `@testing-library/react-native` (dev) | тесты |
 | `react-native-webview` | только этап 8, карта осадков |
 
-`expo-symbols` не нужен: значки интерфейса рисуются теми же SVG, что в макетах, одинаково на обеих платформах ([04](04-ui-spec.md#значки-интерфейса)). `react-native-web` остаётся в `package.json`, но веб не поддерживается: Skia на вебе требует отдельной настройки, а дизайн только для телефонов.
+`expo-symbols` не нужен: значки интерфейса рисуются теми же SVG, что в макетах, одинаково на обеих платформах ([04](04-ui-spec.md#значки-интерфейса)). Веба нет: дизайн только для телефонов, `react-native-web` удалён 2026-10-29.

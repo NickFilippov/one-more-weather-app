@@ -6,27 +6,28 @@
 
 ## Общие правила
 
-- Один дизайн для iPhone и Android. Отличаются только материал стекла и системный шрифт текста.
+- Один дизайн для iPhone и Android. Отличается только системный шрифт текста.
+- Стекла нет (решение владельца 2026-10-29): макеты нарисованы с Liquid Glass, а в приложении панели — полупрозрачная заливка и кромка, без размытия и теней.
 - Ширина макета 402 pt (iPhone), 412 dp (Android). Числа ниже в pt/dp, их не масштабируй: раскладка гибкая, боковые поля 16.
 - CSS-единица `em` в `letterSpacing` переводится в pt: `letterSpacing = em × fontSize`.
 - `lineHeight` в RN — абсолютное число: `0.9 × 120 = 108`.
 - Цифры, которые меняются или стоят столбиком: `fontVariant: ['tabular-nums']`.
 - Фон любого экрана — небо. Белого или серого фона нет.
-- Стекло на стекло не кладём.
+- Панель на панель не кладём.
 
 ## Токены (`src/theme/tokens.ts`)
 
-Перенос `tokens.json` целиком:
+Цвета из `tokens.json`. Стеклянные токены дизайн-системы заменены четырьмя: `panel` (было `glass-frosted`), `panelEdge` (`glass-edge-frosted`), `panelStrong` (`glass-fill-strong`), `cloud` (`glass-edge`). Тени, блик и радиусы размытия не используются.
 
 ```ts
 export const colors = {
   day: {
     skyTop: '#2a62a3', skyMid: '#1d4880', skyBottom: '#163c6e',
-    glassFill: 'rgba(255,255,255,0.12)', glassFillStrong: 'rgba(255,255,255,0.20)',
-    glassEdge: 'rgba(255,255,255,0.42)', glassEdgeSoft: 'rgba(255,255,255,0.10)',
-    glassSpecular: 'rgba(255,255,255,0.22)',
-    glassFrosted: 'rgba(10,35,80,0.32)', glassEdgeFrosted: 'rgba(255,255,255,0.18)',
+    panel: 'rgba(10,35,80,0.32)',          // заливка панелей и круглых кнопок
+    panelStrong: 'rgba(255,255,255,0.20)', // нажатие, текущий час, дорожка шкалы
+    panelEdge: 'rgba(255,255,255,0.18)',   // кромка 1 pt
     hairline: 'rgba(255,255,255,0.16)',
+    cloud: 'rgba(255,255,255,0.42)',       // цвет облаков в небе
     text: '#ffffff', textMuted: '#dfe9f7',
     sun: '#ffd36b', onSun: '#2a1d00',
     rain: '#8fd3ff', rainText: '#b0e0ff',
@@ -34,11 +35,9 @@ export const colors = {
   },
   night: {
     skyTop: '#152452', skyMid: '#0f1a3e', skyBottom: '#070d24',
-    glassFill: 'rgba(255,255,255,0.10)', glassFillStrong: 'rgba(255,255,255,0.16)',
-    glassEdge: 'rgba(255,255,255,0.30)', glassEdgeSoft: 'rgba(255,255,255,0.07)',
-    glassSpecular: 'rgba(255,255,255,0.14)',
-    glassFrosted: 'rgba(4,9,24,0.40)', glassEdgeFrosted: 'rgba(255,255,255,0.12)',
+    panel: 'rgba(4,9,24,0.40)', panelStrong: 'rgba(255,255,255,0.16)', panelEdge: 'rgba(255,255,255,0.12)',
     hairline: 'rgba(255,255,255,0.12)',
+    cloud: 'rgba(255,255,255,0.30)',
     text: '#ffffff', textMuted: '#c3cde3',
     sun: '#ffd36b', onSun: '#2a1d00',
     rain: '#8fd3ff', rainText: '#8fd3ff',
@@ -49,30 +48,20 @@ export type Palette = { [K in keyof typeof colors.day]: string };
 
 export const space = { s1: 4, s2: 8, s3: 12, s4: 16, s5: 24, s6: 40 } as const;
 export const radius = { chip: 14, card: 26, sheet: 42, pill: 999 } as const;
-
-export const shadow = {
-  // RN 0.76+ понимает boxShadow строкой, inset тоже
-  day:   { lift: '0 16px 40px rgba(6,22,52,0.30)',  liftInset: 'inset 0 1px 0 rgba(255,255,255,0.35)',
-           press: '0 6px 16px rgba(6,22,52,0.26)',  pressInset: 'inset 0 1px 0 rgba(255,255,255,0.45)' },
-  night: { lift: '0 16px 40px rgba(0,0,10,0.50)',   liftInset: 'inset 0 1px 0 rgba(255,255,255,0.22)',
-           press: '0 6px 16px rgba(0,0,10,0.45)',   pressInset: 'inset 0 1px 0 rgba(255,255,255,0.30)' },
-} as const;
-
 export const duration = { tap: 120, ui: 280, reveal: 640, count: 900, stagger: 45 } as const;
-export const blur = { glass: 24, thick: 44 } as const; // px в вебе; для expo-blur см. GlassPanel
 ```
 
 ### Правила цвета
 
 - Над `skyTop` (верх экрана) только крупный текст цвета `text`: температура, название города, состояние. `textMuted` над `skyTop` не ставить.
-- На стекле: основной текст `text`, вторичный `textMuted`, вероятность осадков `rainText`.
+- На панели: основной текст `text`, вторичный `textMuted`, вероятность осадков `rainText`.
 - `cold`, `warm`, `rain` — только знаки (шкала, капли), никогда не текст.
 - `sun` отмечает «сейчас»: обводка точки на шкале.
 - Кольцо фокуса: 2 pt `focus` со смещением 2 pt.
 
 ## Типографика (`src/theme/typography.ts`)
 
-Шрифт цифр — Bricolage Grotesque из `@expo-google-fonts/bricolage-grotesque`. Нужны три начертания: `BricolageGrotesque_200ExtraLight`, `BricolageGrotesque_300Light`, `BricolageGrotesque_500Medium`. Вес 250 из дизайна заменяется на 300, ближайший статический. У стилей с Bricolage задавай только `fontFamily`, без `fontWeight`: на Android их сочетание со своим шрифтом даёт подмену на системный.
+Шрифт цифр — Bricolage Grotesque из `@expo-google-fonts/bricolage-grotesque`. Нужны четыре начертания: `BricolageGrotesque_200ExtraLight`, `BricolageGrotesque_300Light`, `BricolageGrotesque_500Medium` и `BricolageGrotesque_600SemiBold` (слово Weather в сплэше). Вес 250 из дизайна заменяется на 300, ближайший статический. У стилей с Bricolage задавай только `fontFamily`, без `fontWeight`: на Android их сочетание со своим шрифтом даёт подмену на системный.
 
 Текстовые стили без `fontFamily` получают системный шрифт (SF Pro / Roboto).
 
@@ -109,60 +98,41 @@ export const blur = { glass: 24, thick: 44 } as const; // px в вебе; для
 ```ts
 import { Easing } from 'react-native-reanimated';
 export const ease = {
-  glass: Easing.bezier(0.32, 0.72, 0, 1),   // появления и сдвиги
-  spring: Easing.bezier(0.34, 1.56, 0.64, 1), // отпускание стекла, рост шкалы
+  out: Easing.bezier(0.32, 0.72, 0, 1),     // ease-glass дизайн-системы: появления и сдвиги
+  spring: Easing.bezier(0.34, 1.56, 0.64, 1), // отпускание кнопки, рост шкалы
   drift: Easing.bezier(0.45, 0, 0.55, 1),   // облака, свечение
 };
 ```
 
 | Что | Как | Длительность, кривая | При «Уменьшении движения» |
 | --- | --- | --- | --- |
-| Появление панели (`Reveal`) | opacity 0→1, translateY 12→0, scale 0.985→1 | `reveal` 640, `glass`, задержка по каскаду | только opacity за `ui` 280 |
+| Появление панели (`Reveal`) | opacity 0→1, translateY 12→0, scale 0.985→1 | `reveal` 640, `out`, задержка по каскаду | только opacity за `ui` 280 |
 | Каскад | задержки: hero 0/60/120/160, лента 120, дни 200, плитки 280 и 330; внутри ленты и списка дней `i × 45` + базовая задержка (120 у часов, 200 у дней) | | без задержек |
 | Отсчёт температуры | от 0 до значения, `p` по времени, значение `round(target × (1 − (1 − p)^4))` | `count` 900 | сразу значение |
 | Рост полоски дня | scaleX 0→1 от левого края, opacity 0.4→1 | `reveal` 640, `spring`, задержка `i × 45 + 320` | только opacity |
 | Точка «сейчас» | scale 0→1 | `ui` 280, `spring`, задержка 700 | без анимации |
-| Нажатие стекла | scale → 0.97, тень → `press`, фон → `glassFillStrong` | `tap` 120 вниз, `ui` 280 `spring` обратно | без scale, остаётся смена фона |
-| Нажатие карточки города | scale → 0.98, сверху слой `glassFillStrong` | так же | без scale |
+| Нажатие кнопки (`PressableScale`) | scale → 0.97; у `RoundButton` фон → `panelStrong` | `tap` 120 вниз, `ui` 280 `spring` обратно | без scale, остаётся смена фона |
+| Нажатие карточки города | scale → 0.98, сверху слой `panelStrong` | так же | без scale |
 | Облака | translateX от −8% до +10% ширины облака, туда и обратно | 52, 64, 58 с; `drift` | стоят |
 | Свечение | scale 1→1.12, туда и обратно | 9 с, `drift` | стоит |
 | Дождь | частицы, см. `Atmosphere` | непрерывно | один неподвижный кадр |
-| Иконки | см. `WeatherIcon` | | стоят |
+| Иконки | одно движение на иконку, см. `WeatherIcon` | | стоят |
 | Сплэш при запуске | см. [Сплэш «Восход»](#сплэш-восход) | около 2.5 с | кадр с названием стоит 900 мс и гаснет за `ui` |
 
-`src/lib/useReduceMotion.ts`: начальное значение из `AccessibilityInfo.isReduceMotionEnabled()`, подписка на событие `'reduceMotionChanged'`. Все анимации читают его.
+`src/lib/useReduceMotion.tsx` (`ReduceMotionProvider` в `_layout`): начальное значение из `AccessibilityInfo.isReduceMotionEnabled()`, подписка на событие `'reduceMotionChanged'`. Все анимации читают его.
 
 `src/lib/useAppActive.ts`: `AppState.currentState === 'active'` с подпиской на `'change'`. Фоновые анимации (небо, иконки) идут только при `active && isVisiblePage && !reduceMotion` (NFR-06).
 
 ## Тема (`src/theme/ThemeProvider.tsx`)
 
 ```ts
-interface ThemeValue { name: ThemeName; c: Palette; shadow: typeof shadow.day; glass: GlassMode }
+interface ThemeValue { name: ThemeName; c: Palette }
 export function ThemeProvider(props: { theme: ThemeName; children: React.ReactNode }): JSX.Element;
 export function useTheme(): ThemeValue;
 ```
 
-- В режиме `frosted` палитра подменяется: `glassFill = glassFrosted`, `glassEdge = glassEdgeSoft = glassEdgeFrosted`. Компоненты читают уже подменённые значения.
 - `ThemeProvider` стоит у каждой страницы города, у каждой карточки города и у экрана городов.
 - Экран городов в макете ночной: `ThemeProvider theme="night"`, фон — градиент `skyTop` → `skyBottom` на 60% высоты. Карточки внутри получают свою тему.
-
-### Режим стекла (`src/theme/glassMode.ts`)
-
-```ts
-import { isGlassEffectAPIAvailable, isLiquidGlassAvailable } from 'expo-glass-effect';
-export type GlassMode = 'liquid' | 'frosted';
-
-export function detectGlassMode(reduceTransparency: boolean): GlassMode {
-  if (reduceTransparency) return 'frosted';
-  try {
-    return isGlassEffectAPIAvailable() && isLiquidGlassAvailable() ? 'liquid' : 'frosted';
-  } catch {
-    return 'frosted';
-  }
-}
-```
-
-Решение принимается по возможности системы, не по `Platform.OS` (BR-11). `reduceTransparency` — из `AccessibilityInfo.isReduceTransparencyEnabled()`. Результат вычисляется один раз при запуске и кладётся в `ThemeProvider`.
 
 ## Компоненты
 
@@ -178,15 +148,9 @@ interface AtmosphereProps { condition: Condition; active: boolean; children?: Re
 
 ```
 <View style={[{ flex: 1, overflow: 'hidden' }, style]}>
-  <BlurTargetView ref={targetRef} style={StyleSheet.absoluteFill}>   // из expo-blur
-    <LinearGradient colors={[skyTop, skyMid, skyBottom]} locations={[0, 0.38, 1]} style={absoluteFill} />
-    <Canvas style={absoluteFill} pointerEvents="none">              // @shopify/react-native-skia
-      {glow}  {clouds}  {rain}
-    </Canvas>
-  </BlurTargetView>
-  <BlurTargetContext.Provider value={targetRef}>
-    {children}                                                       // соседи BlurTargetView, не потомки
-  </BlurTargetContext.Provider>
+  <LinearGradient colors={[skyTop, skyMid, skyBottom]} locations={[0, 0.38, 1]} style={absoluteFill} />
+  <SkyCanvas …/>                     // Canvas Skia: свечение, облака, дождь
+  {children}
 </View>
 ```
 
@@ -202,7 +166,7 @@ interface AtmosphereProps { condition: Condition; active: boolean; children?: Re
 
 **Свечение.** Круг диаметром 70% ширины, центр на верхнем крае экрана, правый край выступает за экран на 15% ширины: `cx = W × 1.15 − 0.35W = 0.8W`, `cy = 0`, `r = 0.35W`. Радиальный градиент: от цвета свечения в центре до прозрачного на 62% радиуса, размытие 8. Цвет и непрозрачность: день `sun`, 0.4; ночь `textMuted`, 0.16. Дышит: scale 1→1.12, 9 с, `drift`, туда и обратно.
 
-**Облака.** Эллипсы с радиальным градиентом от `glassEdge` в центре к прозрачному на краю, размытие 18. Позиции в долях экрана (`left, top, width, height`), длительность цикла дрейфа:
+**Облака.** Эллипсы с радиальным градиентом от `cloud` в центре к прозрачному на краю, размытие 18. Позиции в долях экрана (`left, top, width, height`), длительность цикла дрейфа:
 
 | № | left | top | width | height | цикл |
 | --- | --- | --- | --- | --- | --- |
@@ -223,51 +187,18 @@ interface AtmosphereProps { condition: Condition; active: boolean; children?: Re
 
 **Контекст не проходит в Canvas.** Skia рисует детей `<Canvas>` своим рендерером, поэтому `useTheme()` внутри `Glow`, `Clouds`, `Rain` бросает ошибку. Цвета берёт `SkyCanvas` (он снаружи Canvas) и передаёт пропсами.
 
-**Важно для Android.** Матовое стекло на Android размывает только то, что лежит внутри `BlurTargetView`. Проверь в спайке T-12, что Skia-холст внутри него размывается. Если нет: оставь холст вне `BlurTargetView` (внутри только градиент) — панели будут размывать градиент, а облака и дождь под стеклом станут не видны. Это допустимо: дизайн говорит, что тонировка держит контраст и без размытия.
-
-### GlassPanel
+### Panel
 
 ```ts
-interface GlassPanelProps {
-  thick?: boolean;          // футер, поле поиска
-  interactive?: boolean;    // нажимается
-  onPress?: () => void;
-  delay?: number;           // задержка появления, мс
-  reveal?: boolean;         // по умолчанию true
-  label?: string;           // accessibilityLabel
+interface PanelProps {
   radius?: number;          // по умолчанию radius.card (26); пилюля — radius.pill
-  style?: ViewStyle;        // внешние размеры
+  label?: string;           // если задана, панель читается диктором как один элемент
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }
 ```
 
-Устройство:
-
-```
-<Reveal delay={delay} enabled={reveal}>                       // анимирует обёртку, не GlassView
-  <PressableScale enabled={interactive} onPress={onPress}>    // scale 0.97, accessibilityRole="button"
-    liquid:  <GlassView glassEffectStyle="regular" isInteractive={interactive}
-                        style={{ borderRadius: r, overflow: 'hidden' }}>{children}</GlassView>
-    frosted: <View style={{ borderRadius: r, boxShadow: `${shadow.lift}, ${shadow.liftInset}` }}>
-               <View style={{ borderRadius: r, overflow: 'hidden', borderWidth: 1, borderColor: c.glassEdge }}>
-                 <BlurView intensity={thick ? 60 : 35} tint="dark"
-                           blurMethod="dimezisBlurViewSdk31Plus" blurTarget={targetRef}
-                           style={StyleSheet.absoluteFill} />
-                 <View style={[StyleSheet.absoluteFill, { backgroundColor: c.glassFill }]} />
-                 {children}
-               </View>
-             </View>
-  </PressableScale>
-</Reveal>
-```
-
-- `targetRef` — из `BlurTargetContext`. Его нет (например, панель вне `Atmosphere`) — `BlurView` не рисуется, остаётся заливка.
-- `borderRadius` у `BlurView` не работает, скругляет родитель с `overflow: 'hidden'` (документация `expo-blur`).
-- `intensity` 35 и 60 — стартовые значения. Подбери на устройстве, сравнивая с [android-day-rain](../screenshots/android-day-rain.png).
-- У `GlassView` не меняй `opacity` (Apple не советует, стекло пропадает). Появление анимирует обёртка `Reveal`.
-- В режиме `liquid` тень `glass-lift` не рисуется: системное стекло рисует свою.
-- Нажатое состояние frosted: фон `glassFillStrong`, тень `press`, сжатие до 0.97 делает `PressableScale`. В liquid нажатие целиком отрабатывает система (`isInteractive`), `PressableScale` не сжимает панель, чтобы эффекты не складывались.
-- `BlurView` должен рендериться после динамического содержимого рядом с ним (ограничение `expo-blur`): держи его первым ребёнком панели, а саму панель внутри `ScrollView`, который идёт после `BlurTargetView`.
+`View` со скруглением, заливкой `panel`, кромкой 1 pt `panelEdge` и `overflow: 'hidden'`. Без размытия, теней и анимации. Появление — снаружи: `<Reveal delay={…}><Panel>…</Panel></Reveal>`.
 
 Внутренний отступ панели одинаковый: 12 сверху до заголовка, 16 по бокам и снизу. Его задают дочерние блоки, не сама панель.
 
@@ -275,13 +206,13 @@ interface GlassPanelProps {
 
 Заголовок панели: `caption`, цвет `textMuted`, отступы `paddingTop 12, paddingHorizontal 16`. Текст обычным регистром («Прогноз на 10 дней»), прописные даёт стиль.
 
-### GlassButton
+### RoundButton
 
 ```ts
-interface GlassButtonProps { label: string; size?: 56 | 44; onPress?: () => void; icon: UiIconName; delay?: number }
+interface RoundButtonProps { label: string; icon: UiIconName; size?: 56 | 44; onPress?: () => void }
 ```
 
-- Круг `size × size` (56 в футере, 44 в шапке), `GlassPanel thick interactive radius={size / 2}`.
+- Круг `size × size` (56 в футере, 44 в шапке): `PressableScale`, внутри `View` с заливкой `panel` (при нажатии `panelStrong`) и кромкой `panelEdge`.
 - Иконка по центру, размер `round(size × 0.43)`: 24 в кнопке 56, 19 в кнопке 44. Цвет `text`.
 - `accessibilityLabel = label` обязателен (NFR-12). Область нажатия не меньше 44 (NFR-13): у кнопки 44 это выполняется, `hitSlop` не нужен.
 
@@ -298,10 +229,10 @@ interface PageDotsProps { count: number; current: number; location: boolean; lab
 
 ### Footer
 
-- `position: 'absolute'`, `left: 16`, `right: 16`, `bottom: Math.max(insets.bottom, 28)`, ряд `space-between`, `alignItems: 'center'`, `pointerEvents="box-none"`.
-- Слева `GlassButton` «Карта осадков» (иконка `map`). До этапа 8 кнопка не рисуется, на её месте пустой `View` 56×56, чтобы пилюля осталась по центру. **Предложение.**
-- По центру пилюля: `GlassPanel thick reveal={false} radius={radius.pill}`, высота 56, `paddingHorizontal: 24`, внутри `PageDots`.
-- Справа `GlassButton` «Список городов» (иконка `list`) → `router.push('/cities')`.
+- `Reveal` с `position: 'absolute'`, `left: 16`, `right: 16`, `bottom: Math.max(insets.bottom, 28)`, ряд `space-between`, `alignItems: 'center'`, `pointerEvents="box-none"`: футер появляется одним блоком.
+- Слева `RoundButton` «Карта осадков» (иконка `map`). До этапа 8 кнопка не рисуется, на её месте пустой `View` 56×56, чтобы пилюля осталась по центру. **Предложение.**
+- По центру пилюля: `Panel radius={radius.pill}`, высота 56, `paddingHorizontal: 24`, внутри `PageDots`.
+- Справа `RoundButton` «Список городов» (иконка `list`) → `router.push('/cities')`.
 - Нижний отступ прокрутки страницы: `footerBottom + 56 + 40`, чтобы последняя панель уезжала из-под футера.
 
 ### TempHero
@@ -310,7 +241,7 @@ interface PageDotsProps { count: number; current: number; location: boolean; lab
 interface TempHeroProps extends HeroVM { animate: boolean }
 ```
 
-- Колонка по центру, `paddingTop 24`, `paddingBottom 16`. Ставится прямо на небо, без стекла.
+- Колонка по центру, `paddingTop 24`, `paddingBottom 16`. Ставится прямо на небо, без панели.
 - Строки: `place`; температура `tempHero` с отступами 4 сверху и снизу; `headline`; `rangeHero` с отступом 4 сверху.
 - Температура: число `formatTempNumber(значение)` по центру, знак `°` абсолютно справа от числа (`position: 'absolute', left: '100%', top: 0`): градус не сдвигает цифры от центра.
 - Отсчёт от 0 (`useCountUp(target, 900)`, порт из дизайн-системы на `requestAnimationFrame`), при `animate === false` или reduce motion — сразу значение. `accessibilityLabel` у температуры — итоговое значение `formatTemp(temp)`, не бегущее.
@@ -323,12 +254,12 @@ interface TempHeroProps extends HeroVM { animate: boolean }
 interface HourlyForecastProps { hours: HourVM[]; summary?: string; delay?: number }
 ```
 
-- `GlassPanel`, `label` «Почасовой прогноз».
+- `Reveal` + `Panel`, `label` «Почасовой прогноз».
 - Сверху сводка, если есть: `body`, `marginTop 12`, `marginHorizontal 16`, `paddingBottom 12`, нижняя линия 1 pt `hairline`. Без сводки — `PanelHeader` «Почасовой прогноз».
 - Лента: горизонтальный `ScrollView`, `showsHorizontalScrollIndicator={false}`, отступы `paddingVertical 12`, `paddingHorizontal 8`.
 - Ширина пункта: `max(64, (ширинаПанели − 16) / 5)`, ширину панели бери из `onLayout`. Пять пунктов ровно заполняют ленту. `snapToInterval={ширинаПункта}`, `decelerationRate="fast"`.
 - Пункт: колонка по центру, промежуток 4, `paddingVertical 8`. Сверху вниз: время (`label`; у первого «Сейчас»), иконка 28 в коробке высотой 30, вероятность (`micro`, `rainText`, высота строки 16 всегда, пустая если нет), температура (`numeral`).
-- Пункт «Сейчас»: фон `glassFillStrong`, рамка 1 pt `glassEdge`, радиус `26 − 8 = 18`.
+- Пункт «Сейчас»: фон `panelStrong`, рамка 1 pt `panelEdge`, радиус `26 − 8 = 18`.
 - Каскад: пункт `i` появляется с задержкой `i × 45 + 120`.
 - У пункта `accessible` и `accessibilityLabel = hour.a11y`, дочерние элементы диктору не видны.
 
@@ -338,10 +269,10 @@ interface HourlyForecastProps { hours: HourVM[]; summary?: string; delay?: numbe
 interface DailyForecastProps { days: DayVM[]; min: number; max: number; delay?: number }
 ```
 
-- `GlassPanel`, `PanelHeader` «Прогноз на 10 дней». Список: `paddingTop 4`, `paddingHorizontal 16`, `paddingBottom 8`.
+- `Reveal` + `Panel`, `PanelHeader` «Прогноз на 10 дней». Список: `paddingTop 4`, `paddingHorizontal 16`, `paddingBottom 8`.
 - Строка: ряд, `minHeight 48`, `alignItems: 'center'`, промежуток 8, линия сверху 1 pt `hairline` у всех, кроме первой. Колонки фиксированной ширины: день 76, иконка 34, минимум 40, шкала — остаток (`flex: 1`), максимум 40.
 - День: `dayName`. Иконка 26, под ней вероятность (`popDay`, `rainText`), обе по центру колонки. Минимум: `numeral`, `textMuted`, по правому краю. Максимум: `numeral`, `text`, по правому краю.
-- Шкала (`TempBar`): дорожка высотой 5, радиус пилюли, фон `glassFillStrong`. Полоска: `left = (low − min) / span`, `width = max(0.06, (high − low) / span)` в долях ширины дорожки, `span = max(1, max − min)`.
+- Шкала (`TempBar`): дорожка высотой 5, радиус пилюли, фон `panelStrong`. Полоска: `left = (low − min) / span`, `width = max(0.06, (high − low) / span)` в долях ширины дорожки, `span = max(1, max − min)`.
 - Градиент полоски общий на всю неделю (BR-06): полоска — `View` с `overflow: 'hidden'`, внутри `LinearGradient` горизонтально `cold → warm` шириной во всю дорожку, сдвинутый влево на `left × ширинаДорожки`. Ширину дорожки бери из `onLayout`.
 - Точка «сейчас» (если `now` задан): круг 9×9, заливка `text`, обводка 2 pt `sun`, центр на `(now − min) / span` ширины дорожки, по вертикали по центру.
 - Каскад строк `i × 45 + 200`, рост полоски `i × 45 + 320`, точка через 700 мс.
@@ -354,7 +285,7 @@ interface TilesProps { tiles: TileVM[]; delay?: number }
 ```
 
 - Сетка в 2 колонки, промежуток 16: ряды по две плитки, каждая `flex: 1`. Плитки в ряду одной высоты (`alignItems: 'stretch'`).
-- Плитка — `GlassPanel` (задержки 280 и 330, следующий ряд +100). Внутри: `minHeight 168`, отступы `12 / 16 / 16` (верх, бока, низ), колонка с промежутком 8.
+- Плитка — `Reveal` + `Panel` (задержки 280 и 330, следующий ряд +100). Внутри: `minHeight 168`, отступы `12 / 16 / 16` (верх, бока, низ), колонка с промежутком 8.
 - Сверху вниз: подпись (`caption`, `textMuted`), значение (`tileValue`) с единицей справа (`unit`, `marginLeft 4`) в одной строке по базовой линии, пояснение (`body`) прижато к низу (`marginTop: 'auto'`). Пояснения в ряду стоят на одной нижней линии.
 - `accessibilityLabel` плитки: `«{label}, {value} {unit}. {note}»`.
 
@@ -369,18 +300,18 @@ interface CityCardProps extends CityCardVM { onPress: () => void; delay?: number
 - Тело: отступы 12 / 16, колонка `space-between`.
   - Верхний ряд, `space-between`, промежуток 12: слева колонка «название» (`cityName`) и подпись (`micro`, `textMuted`), справа температура (`tempLg`).
   - Нижний ряд, `space-between`, по базовой линии, `cardBottom`: состояние (одна строка, многоточие) и диапазон (не переносится).
-- Нажатие: scale 0.98 и слой `glassFillStrong` поверх на время нажатия. `accessibilityRole="button"`, `accessibilityLabel = a11y`.
+- Нажатие: scale 0.98 и слой `panelStrong` поверх на время нажатия. `accessibilityRole="button"`, `accessibilityLabel = a11y`.
 - Каскад карточек: задержка `80 + i × 45`.
 
 ### SearchField
 
-- `GlassPanel thick reveal={false} radius={radius.pill}`, высота 52.
+- `Panel radius={radius.pill}`, высота 52, без анимации появления.
 - Ряд: `paddingHorizontal 24`, промежуток 12. Иконка поиска 20, `textMuted`. `TextInput` на остаток: стиль `field`, цвет `text`, `placeholderTextColor={c.textMuted}`, `placeholder` «Найти город или аэропорт», `returnKeyType="search"`, `autoCorrect={false}`, `clearButtonMode="while-editing"`, `accessibilityLabel` «Поиск города».
 - `keyboardAppearance="dark"`.
 
 ### Результаты поиска
 
-Дизайна нет (S-03, Q-08). **Предложение:** одна `GlassPanel` под полем поиска со списком строк. Строка: `minHeight 56`, отступы 12 / 16, линия `hairline` между строками. Название (`label`, 15/20 600) и под ним подпись «регион, страна» (`micro`, `textMuted`). Справа для уже добавленного — «Уже в списке» (`micro`, `textMuted`). Нажатие на новый: `addCity`, обновить погоду, очистить поле, закрыть клавиатуру; новая карточка появляется в конце списка.
+Дизайна нет (S-03, Q-08). **Предложение:** одна `Panel` (в `Reveal`) под полем поиска со списком строк. Строка: `minHeight 56`, отступы 12 / 16, линия `hairline` между строками. Название (`label`, 15/20 600) и под ним подпись «регион, страна» (`micro`, `textMuted`). Справа для уже добавленного — «Уже в списке» (`micro`, `textMuted`). Нажатие на новый: `addCity`, обновить погоду, очистить поле, закрыть клавиатуру; новая карточка появляется в конце списка.
 
 ### StatePanel
 
@@ -388,12 +319,12 @@ interface CityCardProps extends CityCardVM { onPress: () => void; delay?: number
 interface StatePanelProps { title?: string; text: string; actions?: { label: string; onPress: () => void }[]; busy?: boolean }
 ```
 
-`GlassPanel`, отступы 16, промежуток 12. Заголовок `headline`, текст `body`, `textMuted` не использовать (панель может стоять высоко над `skyTop`) — текст цвета `text`. Кнопки — пилюли `GlassPanel interactive radius={pill}` высотой 44 с подписью `label` по центру, в столбик с промежутком 8. `busy` — `ActivityIndicator` цвета `text` вместо кнопок. Ставится по центру экрана на небе страницы.
+`Reveal` + `Panel`, отступы 16, промежуток 12. Заголовок `headline`, текст `body`, `textMuted` не использовать (панель может стоять высоко над `skyTop`) — текст цвета `text`. Кнопки — пилюли `PressableScale` с фоном `panelStrong` высотой 44 и подписью `label` по центру (не панели: панель на панель не кладём), в столбик с промежутком 8. `busy` — `ActivityIndicator` цвета `text` вместо кнопок. Ставится по центру экрана на небе страницы.
 
 ### Reveal и PressableScale
 
-- `Reveal` (`src/components/Reveal.tsx`): `Animated.View` из Reanimated, анимация появления из таблицы движения, запускается при монтировании. Под сплэшем ждёт фазы `reveal` и сдвигается на `ENTRANCE_SHIFT` (см. [Сплэш](#сплэш-восход)); то же делают `GlassPanel` (через общий `useReveal`) и `TempBar`.
-- `PressableScale` (`src/components/glass/PressableScale.tsx`): `Pressable` + `Animated.View`, scale из таблицы движения. Без `onPress` — просто `View`, диктор не считает его кнопкой.
+- `Reveal` (`src/components/Reveal.tsx`): `Animated.View` из Reanimated, анимация появления из таблицы движения, запускается при монтировании. Под сплэшем ждёт фазы `reveal` и сдвигается на `ENTRANCE_SHIFT` (см. [Сплэш](#сплэш-восход)); так же устроены `TempBar` и полёт температуры в `TempHero`.
+- `PressableScale` (`src/components/PressableScale.tsx`): `Pressable` + `Animated.View`, сжатие из таблицы движения; при «Уменьшении движения» не сжимается. Дети — функция от `pressed`.
 
 ## WeatherIcon
 
@@ -427,17 +358,18 @@ interface WeatherIconProps { kind: IconKind; size?: number; label?: string; anim
 
 Облако заливается `text`.
 
-Анимации (только при `animate && !reduceMotion`):
+Анимации (только при `animate && !reduceMotion`). У иконки одно движение и один цикл `useLoopValue`:
 
-| Часть | Движение |
-| --- | --- |
-| лучи | поворот 360° за 24 с, линейно, вокруг центра солнца |
-| облако | сдвиг по X от −0.6 до +0.8 (единицы viewBox), 6 с, `drift`, туда и обратно |
-| капли | translateY −3 → 5, opacity 0 → 1 (на 25%) → 0, 1.1 с, линейно, бесконечно; сдвиг фазы 0, −0.37, −0.74 с |
-| снежинки | translateY −2 → 5, opacity 0 → 1 (на 30%) → 0, 2.4 с; фазы 0, −0.8, −1.6 с |
-| молния | opacity 1; на 64–68% цикла 0.25; цикл 3.2 с, ступенькой |
+| kind | Что движется | Движение |
+| --- | --- | --- |
+| sun | лучи | поворот 360° за 24 с, линейно |
+| cloud, partly | облако | сдвиг по X от −0.6 до +0.8 (единицы viewBox), 6 с, `drift`, туда и обратно; у `partly` солнце стоит |
+| rain | три капли вместе | translateY −2 → 4, opacity 1 → 0, 1.1 с, линейно, бесконечно |
+| snow | три снежинки вместе | так же, 2.4 с |
+| storm | молния | opacity 1; на 64–68% цикла 0.25; цикл 3.2 с |
+| moon | — | стоит |
 
-Как анимировать проще всего: каждая движущаяся часть — отдельный `<Svg>` того же размера и `viewBox`, наложенный абсолютно в коробке `size × size`, а анимируется обёртка `Animated.View` стилем (`transform`, `opacity`). Смещения в единицах viewBox умножай на `size / 32`. Для поворота лучей у `partly` задай `transformOrigin` в точку `(11/32, 11/32)` коробки (`transformOrigin: '34.4% 34.4%'`). Так не нужны анимированные пропсы SVG.
+Неподвижная часть и движущаяся — два `<Svg>` того же размера и `viewBox`, наложенные абсолютно в коробке `size × size`; анимируется обёртка `Animated.View` стилем (`transform`, `opacity`). Смещения в единицах viewBox умножай на `size / 32`. Так не нужны анимированные пропсы SVG.
 
 ## Значки интерфейса
 
@@ -465,12 +397,12 @@ SVG 24×24, обводка `currentColor` → `text`, без заливки, е�
 | Время | Что происходит | Кривая |
 | --- | --- | --- |
 | 0–650 | солнце поднимается на 34 над горизонтом, вокруг него ореол (цвет `sun` днём, `textMuted` ночи ночью, по теме первой страницы); горизонт растягивается по X до 3.6; вдоль горизонта проступает свет (эллипс 600×220, до 0.42) | `glass` |
-| 200, 320, 440, 580 | снизу всплывают One, More, Weather, App (подъём 22, проявление, 640 мс). Weather — 780 мс с пружинкой, наклон −6° и scale 0.9 → 1 | `glass`, Weather `spring` |
+| 200, 320, 440, 580 | снизу всплывают One, More, Weather, App (подъём 22, проявление, 640 мс). Weather — 780 мс с пружинкой, наклон −6° и scale 0.9 → 1 | `out`, Weather `spring` |
 | 1250 | пауза `hold`: кадр собран и неподвижен. Монтируется главный экран, часы стоят, пока он не нарисуется (не дольше 3 с), дальше время идёт от 1250 | |
 | 1350 | фаза `reveal`: главный экран начинает появляться | |
 | 1400–2400 | тьма отступает от точки восхода к краям: радиальная маска на Skia с мягким краем 160 | `cubic-bezier(.5,0,.6,1)` |
 | 1500–2200 | камера поднимает взгляд: горизонт и свет уходят вниз на 300–320 и тают, название уходит вниз на 48 за 450 мс, солнце гаснет за 300 мс | `cubic-bezier(.55,0,.75,.3)` |
-| 1400–2400 | солнце летит в правый верхний угол и становится свечением неба (центр 0.8w на верхнем крае, r 0.35w), в конце гаснет: у ясного неба там своё свечение `Glow` | `glass` |
+| 1400–2400 | солнце летит в правый верхний угол и становится свечением неба (центр 0.8w на верхнем крае, r 0.35w), в конце гаснет: у ясного неба там своё свечение `Glow` | `out` |
 | 2450 | фаза `done`, слой снят | |
 
 Название: Bricolage Grotesque 30/36, трекинг −0.3, в одну строку по центру, низ строки на `max(insets.bottom, 28) + 84` от низа экрана. One, More, App — 300, цвет `text`. Weather — 600, цвет `sun`, свечение `rgba(255,211,107,.45)` радиус 22. Цвет `sun` разрешён для текста ([токены](#правила-цвета)).
@@ -483,7 +415,6 @@ SVG 24×24, обводка `currentColor` → `text`, без заливки, е�
 
 **Почему главный экран монтируется в паузе.** Монтаж экрана города занимает поток отрисовки: замер 2026-10-29 (release, по кадрам записи) — около 1.2 с на симуляторе iPhone 18 Pro, около 1 с на эмуляторе Pixel 3a API 34 с пустым списком и около 2.6 с с городом. При монтаже во время восхода анимация замирала на полуслове (а с часами `withTiming` перескакивала вперёд), поэтому он перенесён в момент, когда кадр собран и ничего не движется. Дальше ускорять — это стоимость монтажа главного экрана на Android (T-72).
 
-В веб-превью сплэша нет (`SplashOverlay.web.tsx`).
 
 ### Главный (`src/app/index.tsx` + `CityPage`)
 
@@ -513,15 +444,15 @@ View flex 1, фон skyBottom активной темы
 ThemeProvider night → View flex 1, LinearGradient skyTop → skyBottom (locations [0, 0.6])
 └── ScrollView keyboardShouldPersistTaps="handled"
       contentContainerStyle: paddingTop insets.top, paddingHorizontal 16, paddingBottom insets.bottom + 24, gap 16
-    ├── Ряд space-between: GlassButton 44 «Назад» (back) → router.back();
-    │                      GlassButton 44 «Изменить список» (more) — до этапа 8 скрыта, на её месте пустой View 44
+    ├── Ряд space-between: RoundButton 44 «Назад» (back) → router.back();
+    │                      RoundButton 44 «Изменить список» (more) — до этапа 8 скрыта, на её месте пустой View 44
     ├── Text «Города» (place)
     ├── SearchField
     ├── поле пустое: CityCard для каждого города (местоположение первым)
     └── поле не пустое: результаты поиска / «Ничего не нашлось»
 ```
 
-Стекло на этом экране (кнопки, поле поиска) лежит прямо на градиенте, без `Atmosphere`: `BlurTargetContext` пуст, на Android остаётся заливка без размытия. Под ним ровный градиент, разницы не видно.
+Кнопки и поле поиска на этом экране лежат прямо на градиенте, без `Atmosphere`.
 
 ## Данные макетов (для этапов 2–3)
 
@@ -632,11 +563,4 @@ PageDots в макетах: 6 городов, у Москвы `current 0`, у П
 
 ## Результаты спайка
 
-Заполняется в задачах [T-12](05-implementation-plan.md#t-12-спайк-стекло-и-размытие) и [T-72](05-implementation-plan.md#t-72-производительность). Пока пусто.
-
-| Платформа и устройство | Режим стекла | Размывается ли Skia-холст | `intensity` (обычное / толстое) | Прокрутка, FPS | Решение |
-| --- | --- | --- | --- | --- | --- |
-| iOS 26, симулятор | | | | | |
-| iOS 18, симулятор | | | | | |
-| Android 12+, эмулятор | | | | | |
-| Android, реальное устройство | | | | | |
+Спайк стекла (T-12) потерял смысл: стекло убрано 2026-10-29. Замеры производительности — в статусе T-72 в [05](05-implementation-plan.md).

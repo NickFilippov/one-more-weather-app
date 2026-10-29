@@ -81,7 +81,7 @@ flowchart LR
 
 ## Версия для Android
 
-Экраны такие же, различаются матовое стекло и системный шрифт Roboto.
+Экраны такие же, различается только системный шрифт Roboto.
 
 <img src="screenshots/android-day-rain.png" width="220" alt="Главный экран на Android"> <img src="screenshots/android-cities.png" width="220" alt="Список городов на Android">
 

@@ -10,7 +10,7 @@
 - Если `jest` падает на синтаксисе внутри `node_modules` (непереведённый ESM), добавь `transformIgnorePatterns` из [документации Expo](https://docs.expo.dev/develop/unit-testing.md) и допиши в список нужный пакет.
 - Конфигурация Jest в `package.json`: `"preset": "jest-expo"` и `"resolver": "react-native-reanimated/jest/resolver"` (без него Reanimated не загружается). В `tsconfig.json` задано `"types": ["jest"]`: в TypeScript 6 пакеты `@types/*` сами не подключаются.
 - `@testing-library/react-native` 14: `render` асинхронный, пиши `await render(...)`. Блоки появляются анимацией с нулевой прозрачностью, поэтому в тестах компонентов включено `configure({ defaultIncludeHiddenElements: true })`.
-- Нативные модули (`@shopify/react-native-skia`, `expo-blur`, `expo-sqlite/kv-store`) в тестах заменяются заглушками, пример: `src/features/weather/__tests__/CityPage.test.tsx`.
+- Нативные модули (`@shopify/react-native-skia`, `expo-sqlite/kv-store`) в тестах заменяются заглушками, пример: `src/features/weather/__tests__/CityPage.test.tsx`.
 - Время в тестах фиксировано: функции принимают `now`, `Date.now` подменяй через `jest.useFakeTimers().setSystemTime(...)` только в тестах сторов.
 
 ## Фикстуры
@@ -76,12 +76,12 @@ jest.mock('expo-sqlite/kv-store', () => {
 
 ## Ручной чек-лист перед первой версией
 
-Проверяется на iOS 26 (Liquid Glass), iOS 18 или ниже (матовое стекло) и Android 12+; по возможности ещё на бюджетном Android.
+Проверяется на iOS и Android 12+; по возможности ещё на бюджетном Android.
 
 | № | Проверка | Требование |
 | --- | --- | --- |
 | 1 | Экраны совпадают с [docs/screenshots/](../screenshots/): отступы, радиусы, шрифты, цвета | NFR-01 |
-| 2 | На iOS 26 стекло системное, на остальных матовое с тёмной тонировкой; текст читается на всех небесах | NFR-03, NFR-10 |
+| 2 | Панели одинаковые на обеих платформах; текст читается на всех небесах | NFR-10 |
 | 3 | Холодный старт с сохранёнными данными до главного экрана не дольше 2 с | NFR-04 |
 | 4 | Прокрутка в дождь и грозу без рывков, свайп между городами плавный | NFR-05 |
 | 5 | Свёрнутое приложение не грузит процессор (Xcode Instruments / Android Profiler) | NFR-06 |

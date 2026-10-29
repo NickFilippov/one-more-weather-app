@@ -6,9 +6,9 @@ AGENTS.md holds the generic Expo/React Native rules (docs-first, `npx expo insta
 
 ## What this is
 
-OneMoreWeatherApp: a pet-project weather app for iPhone and Android (Expo SDK 58, React Native 0.88, React 19.3, TypeScript strict). The sky fills the whole screen and changes with weather and time of day; data sits on glass panels in the style of iOS 26 Liquid Glass. README.md is in Russian; keep user-facing copy in Russian too.
+OneMoreWeatherApp: a pet-project weather app for iPhone and Android (Expo SDK 58, React Native 0.88, React 19.3, TypeScript strict). The sky fills the whole screen and changes with weather and time of day; data sits on translucent panels. The design was drawn as iOS 26 Liquid Glass, but the owner dropped glass on 2026-10-29 to keep the project easy to learn: panels are plain views (see below). README.md is in Russian; keep user-facing copy in Russian too.
 
-**Status (2026-10-29):** the design is finished and the main screen and the cities screen (cards, search, add, open a city) are implemented on live Open-Meteo data (`src/`). The animated launch splash «Восход» (T-74, FR-23) plays over the main screen on cold start. Not implemented: geolocation (T-53), edit mode, precipitation map, alerts. A fresh install starts with an empty city list. It runs on the iOS 27 simulator (iPhone 18 Pro) as a development build: `npx expo run:ios` (CocoaPods 1.17 is installed; `ios/` is generated and git-ignored), Liquid Glass renders. Android also builds and runs (`npx expo run:android`, emulator Pixel_3a_API_34_extension_level_7_arm64-v8a; Pixel_7_Pro_API_VanillaIceCream boots but stays `offline` in adb here, even after a cold boot; the SDK is at `~/Library/Android/sdk` and not on PATH, so export `ANDROID_HOME`). **Android performance is the open problem**: see T-72 in `docs/tech/05`. Not checked: a real device. Task status and deviations from the plan are at the top of `docs/tech/05-implementation-plan.md`; follow `docs/tech/README.md`.
+**Status (2026-10-29):** the design is finished and the main screen and the cities screen (cards, search, add, open a city) are implemented on live Open-Meteo data (`src/`). The animated launch splash «Восход» (T-74, FR-23) plays over the main screen on cold start. On 2026-10-29 the owner simplified the project for learning: no glass, no web preview, no `uiStore`, no per-minute clock (see the top of `docs/tech/05`). Not implemented: geolocation (T-53), edit mode, precipitation map, alerts. A fresh install starts with an empty city list. It runs on the iOS 27 simulator (iPhone 18 Pro) as a development build: `npx expo run:ios` (CocoaPods 1.17 is installed; `ios/` is generated and git-ignored). Android also builds and runs (`npx expo run:android`, emulator Pixel_3a_API_34_extension_level_7_arm64-v8a; Pixel_7_Pro_API_VanillaIceCream boots but stays `offline` in adb here, even after a cold boot; the SDK is at `~/Library/Android/sdk` and not on PATH, so export `ANDROID_HOME`). **Android performance is the open problem**: see T-72 in `docs/tech/05`. Not checked: a real device. Task status and deviations from the plan are at the top of `docs/tech/05-implementation-plan.md`; follow `docs/tech/README.md`.
 
 ## Layout (verified)
 
@@ -31,12 +31,11 @@ Expo Router is set up as AGENTS.md asks: routes live in `src/app/` (`_layout.tsx
 
 - npm is the package manager (`package-lock.json`, no `bun.lock`), so `npx`, not `bunx`.
 - Install packages with `npx expo install <pkg>` only.
-- `npm start`, `npm run ios`, `npm run android`, `npm run web`.
+- `npm start`, `npm run ios`, `npm run android`. There is no web target.
 - Typecheck: `npx tsc --noEmit` (`tsconfig.json` extends `expo/tsconfig.base` with `strict`, `types: ["jest"]` because TypeScript 6 no longer auto-loads `@types/*`).
 - Tests: `npx jest` (jest-expo with the Reanimated resolver; `@testing-library/react-native` 14, where `render` is async). Notes in `docs/tech/06-testing.md`.
 - Lint: `npx expo lint` (ESLint 9 flat config with `eslint-config-expo`, `docs/**` ignored). It includes React Compiler rules: no `Date.now()` in render, no synchronous `setState` in effects, change Reanimated shared values with `.set()` inside handlers.
 - `npx expo-doctor` and `npx expo install --fix` work for dependency checks.
-- Web preview (for looking at the UI without a simulator; phones are the real target): run `npx setup-skia-web public` once (copies the 7 MB `public/canvaskit.wasm`, git-ignored; the script guesses webpack and writes elsewhere unless you pass `public`), then `npm run web`. Web uses `*.web.ts(x)` shims (`Pager`, `SkyEffects`, `storage`), always the frosted glass, and `expo-sqlite` is not used. Headless Chrome needs real-time capture (not `--virtual-time-budget`, it never advances frames) and SwiftShader flags for the WebGL that Skia needs.
 
 ## Config gotchas
 
@@ -44,11 +43,10 @@ Expo Router is set up as AGENTS.md asks: routes live in `src/app/` (`_layout.tsx
 - Icons and the adaptive-icon background (`#E6F4FE`) are Expo template defaults. The splash is branded: `assets/splash-icon.png` (horizon and half a sun) is generated by `node scripts/splash-icon.mjs` with the same sizes as the first frame of `SplashOverlay`, `imageWidth: 160`. Change both together, then `npx expo prebuild` so `ios/` and `android/` pick it up.
 - Under the splash the main screen is mounted but its entrance waits: `src/lib/entrance.ts` holds the phase (`cover` → `reveal` → `done`). Anything that animates on mount (`useReveal`, `TempBar`, `TempHero`) must read `useEntrance()` or it will finish its entrance hidden under the splash.
 - `LICENSE` is MIT with Expo's copyright line, left over from the template.
-- `react-native-web` is installed and `npm run web` exists, but the design targets phones only.
 
 ## Design: source of truth
 
-The design lives in two Claude artifacts (private, readable only by the owner). They are HTML prototypes, so component names like `AtmosGlass.GlassPanel` are web implementations to port, not packages to install.
+The design lives in two Claude artifacts (private, readable only by the owner). They are HTML prototypes, so component names like `AtmosGlass.GlassPanel` are web implementations to port, not packages to install. They still show glass; the app does not (owner's decision 2026-10-29).
 
 - Design system: https://claude.ai/artifact/NodGnsQuESKs2RFibsMCiX (tokens, rules, 8 components with live previews)
 - Mockups: https://claude.ai/artifact/Hv2h29d8ZeGG6SE1KDCpW6 (iPhone and Android rows: the splash plus the same 4 screens, plus 2 annotated guide boards)
@@ -57,7 +55,7 @@ Read them with the Artifact tool (`action: "read"`, `path: "project/README.md"` 
 
 ### Rules that matter for the React Native port
 
-- **One design for both platforms.** Same screens, layout, colours, components and animations. Only the glass material differs. Switch on `isLiquidGlassAvailable()` from `expo-glass-effect` (iOS 26+: `GlassView`), not on `Platform.OS`. Otherwise use frosted glass: a `BlurView` from `expo-blur` plus the `glass-frosted` tint, no specular highlight. Check the `expo-blur` Android notes in the SDK 58 docs before relying on it.
+- **One design for both platforms, no glass.** Same screens, layout, colours, components and animations on iOS and Android. Panels are `Panel` (`src/components/Panel.tsx`): a `View` with the dark translucent `panel` fill and a 1 pt `panelEdge` border, no blur, no Liquid Glass, no shadow. Round icon buttons are `RoundButton`. Entrance animation is not part of a panel: wrap it in `Reveal`. Do not bring back `expo-blur` or `expo-glass-effect` without the owner.
 - **Fonts.** Bricolage Grotesque for temperature figures, the city name in the hero and city cards, the "Города" title and tile values (the design system's CSS uses the display family for all of these; details in `docs/tech/04-ui-spec.md`). All other text uses the system font (SF Pro / Roboto): do not set `fontFamily` for it.
 - **Safe area** insets replace the fixed paddings used in the mockups (62px top on iPhone, 48px on Android; footer 28px from the bottom).
 - **Reduced motion:** with `AccessibilityInfo.isReduceMotionEnabled`, drop rain, cloud drift and the count-up, and reduce entrances to a fade.
@@ -70,22 +68,22 @@ Read them with the Artifact tool (`action: "read"`, `path: "project/README.md"` 
 | Token | Value |
 | --- | --- |
 | `sky-top` / `sky-mid` / `sky-bottom` | `#2a62a3` / `#1d4880` / `#163c6e` and `#152452` / `#0f1a3e` / `#070d24`; gradient top → mid at 38% → bottom |
-| `glass-fill` / `glass-fill-strong` | white at 0.12 / 0.20 and 0.10 / 0.16 |
-| `glass-edge` / `glass-edge-soft` | white at 0.42 / 0.10 and 0.30 / 0.07 |
-| `glass-frosted` / `glass-edge-frosted` | `rgba(10,35,80,.32)` / white 0.18 and `rgba(4,9,24,.40)` / white 0.12 |
+| `panel` / `panelEdge` (design: `glass-frosted` / `glass-edge-frosted`) | `rgba(10,35,80,.32)` / white 0.18 and `rgba(4,9,24,.40)` / white 0.12 |
+| `panelStrong` (design: `glass-fill-strong`) | white at 0.20 / 0.16: pressed state, chip of the current hour, range-bar track |
+| `cloud` (design: `glass-edge`) | white at 0.42 / 0.30: cloud colour in the sky |
 | `hairline` | white at 0.16 / 0.12 |
 | `text` / `text-muted` | `#ffffff` / `#dfe9f7` day, `#c3cde3` night |
 | `sun` / `on-sun` | `#ffd36b` / `#2a1d00` |
 | `rain` / `rain-text` | `#8fd3ff` / `#b0e0ff` day, `#8fd3ff` night |
 | `cold` / `warm` / `alert` | `#7cc4ff` / `#ffb057` / `#ffa36b` |
 
-Spacing 4, 8, 12, 16, 24, 40. Radii: chip 14, card 26, sheet 42, pill 999 (nested radii are concentric: inner = outer − inset). Motion: tap 120 ms, ui 280 ms, reveal 640 ms, count-up 900 ms, stagger 45 ms; curves `cubic-bezier(.32,.72,0,1)` (glass), `(.34,1.56,.64,1)` (spring), `(.45,0,.55,1)` (drift).
+Spacing 4, 8, 12, 16, 24, 40. Radii: chip 14, card 26, sheet 42, pill 999 (nested radii are concentric: inner = outer − inset). Motion: tap 120 ms, ui 280 ms, reveal 640 ms, count-up 900 ms, stagger 45 ms; curves `cubic-bezier(.32,.72,0,1)` (design `ease-glass`, `ease.out` in code), `(.34,1.56,.64,1)` (spring), `(.45,0,.55,1)` (drift).
 
 Type (size/line-height, weight): temp-hero 120/0.9×, 200, tracking −0.04em; temp-lg 48, 250; place 34/40, 500; headline 20/25, 500; body 15/20, 400; numeral 17/22, 500; label 15/20, 600; caption 12/16, 600 uppercase +0.06em; micro 13/16, 600.
 
 ### What to build
 
-Components: `Atmosphere` (full-screen sky with rain canvas, clouds, sun/moon glow), `GlassPanel`, `GlassButton` (56 px footer, 44 px header), `PageDots`, `TempHero` (count-up from 0), `HourlyForecast`, `DailyForecast` (range bars, "now" dot), `WeatherIcon` (7 animated 32×32 glyphs: sun, moon, partly, cloud, rain, storm, snow). Patterns: tiles grid, city card (sky inside, own theme), search field.
+Components: `Atmosphere` (full-screen sky with rain canvas, clouds, sun/moon glow), `Panel`, `RoundButton` (56 px footer, 44 px header), `PageDots`, `TempHero` (count-up from 0), `HourlyForecast`, `DailyForecast` (range bars, "now" dot), `WeatherIcon` (7 32×32 glyphs: sun, moon, partly, cloud, rain, storm, snow; one motion each, the moon is still). Patterns: tiles grid, city card (sky inside, own theme), search field.
 
 Screens: splash «Восход» (sunrise, the name One More Weather App word by word, the sky opens and the temperature flies in; spec in `docs/tech/04-ui-spec.md`), main (hero, hourly, 10-day, tiles, footer), night, storm (with warning panel), cities (back, edit, search, city cards). Footer: precipitation-map button, page-dots pill, city-list button.
 
