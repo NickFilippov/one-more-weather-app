@@ -13,6 +13,9 @@
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
         "tinted": "./assets/icon-tinted.png"
+      },
+      "infoPlist": {
+        "CFBundleDisplayName": "Погода"
       }
     },
     "android": {
@@ -42,6 +45,12 @@
           "backgroundColor": "#070d24",
           "image": "./assets/splash-icon.png",
           "imageWidth": 160
+        }
+      ],
+      [
+        "./plugins/withAppLabel",
+        {
+          "label": "Погода"
         }
       ]
     ],
