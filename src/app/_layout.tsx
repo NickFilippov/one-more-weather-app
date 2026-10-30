@@ -15,6 +15,9 @@ import { colors } from '@/theme/tokens';
 // и сразу начинает восход. Главный экран монтируется, когда кадр сплэша собран и неподвижен,
 // и ждёт своей фазы появления.
 void SplashScreen.preventAutoHideAsync();
+// Слой рисует тот же кадр, поэтому нативный сплэш снимается мгновенно. На Android по умолчанию он
+// растворяется 400 мс поверх уже начавшегося восхода: были видны два солнца, потом рывок.
+SplashScreen.setOptions({ duration: 0, fade: false });
 setEntrancePhase('cover');
 
 export default function RootLayout() {

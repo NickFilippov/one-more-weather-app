@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { AccessibilityInfo, Platform, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { Canvas, Circle, Group, RadialGradient, Rect, rect, vec } from '@shopify/react-native-skia';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
@@ -35,6 +35,9 @@ const SUN_D = 28;
 const RISE = 34;
 // Шаг часов сплэша за кадр, мс: два кадра при 60 Гц
 const MAX_STEP = 34;
+// Сколько кадров постоять на кадре заставки перед восходом. На Android первая отрисовка холста Skia
+// задерживает вывод кадров: часы шли, а экран показывал ещё неподвижный кадр, и солнце выпрыгивало.
+const WARMUP_FRAMES = Platform.OS === 'android' ? 12 : 0;
 
 // Сцена уходит с ускорением; тьма отступает плавно
 const away = Easing.bezierFn(0.55, 0, 0.75, 0.3);
@@ -89,6 +92,7 @@ export function SplashOverlay({ fontsReady, mainReady, onMountMain }: Props) {
   const fade = useSharedValue(1);
   // До паузы hold часы идут сами; дальше — только когда главный экран готов
   const pastHold = useSharedValue(false);
+  const warm = useSharedValue(0);
   const laidOut = size !== null;
 
   // Монтаж главного экрана занимает поток отрисовки (замер 2026-10-29, release на симуляторах:
@@ -103,6 +107,10 @@ export function SplashOverlay({ fontsReady, mainReady, onMountMain }: Props) {
   // монтаж главного экрана), анимация встаёт и продолжает с того же места, а не перескакивает.
   // Фазы появления тоже идут по этим часам: по настенному таймеру слой снимался посреди ухода сцены.
   const clock = useFrameCallback((frame) => {
+    if (warm.value < WARMUP_FRAMES) {
+      warm.value += 1;
+      return;
+    }
     const step = Math.min(frame.timeSincePreviousFrame ?? 16, MAX_STEP);
     const prev = t.value;
     const next = Math.min(prev + step, pastHold.value ? T.end : T.hold);
