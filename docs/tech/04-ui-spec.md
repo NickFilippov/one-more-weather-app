@@ -439,7 +439,9 @@ View flex 1, фон skyBottom активной темы
 │   └── для каждого города: CityPage key=city.id active={i === current && appActive}
 │       └── ThemeProvider(theme) → Atmosphere(sky, active)
 │           └── ScrollView
-│                 contentContainerStyle: paddingTop insets.top, paddingHorizontal 16,
+│                 contentContainerStyle: paddingTop insets.top (на iOS 0: отступ даёт система,
+│                                        contentInsetAdjustmentBehavior="automatic", чтобы индикатор
+│                                        обновления был под статус-баром, а не за Dynamic Island), paddingHorizontal 16,
 │                                        paddingBottom footerBottom + 96, gap 16
 │                 refreshControl: RefreshControl tintColor text → refresh(city, {force: true})
 │               ├── [строка «Нет связи. Данные на 14:05»]   (если ошибка и есть старые данные)

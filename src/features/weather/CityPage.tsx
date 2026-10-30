@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Linking, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
 import { useFooterBottom } from '@/components/Footer';
@@ -106,12 +106,15 @@ function Content({ vm, fetchedAt, offset, stale, active, pulling, onPull }: Cont
   const reduceMotion = useReduceMotion();
   const animateIcons = active && !reduceMotion;
   const updated = formatClock(cityClock(Math.floor(fetchedAt / 1000), offset));
+  // На iOS отступ под статус-бар добавляет система: тогда индикатор обновления встаёт под ним,
+  // а не прячется за Dynamic Island. На Android индикатор и так виден, отступ задаём сами.
+  const ios = Platform.OS === 'ios';
 
   return (
     <ScrollView
-      contentContainerStyle={[pad, styles.content]}
+      contentContainerStyle={[pad, ios && styles.noTop, styles.content]}
       showsVerticalScrollIndicator={false}
-      contentInsetAdjustmentBehavior="never"
+      contentInsetAdjustmentBehavior={ios ? 'automatic' : 'never'}
       refreshControl={<RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={c.text} colors={[c.text]} progressBackgroundColor={c.skyMid} />}
     >
       {stale ? (
@@ -137,6 +140,7 @@ function Content({ vm, fetchedAt, offset, stale, active, pulling, onPull }: Cont
 const styles = StyleSheet.create({
   empty: { flex: 1, justifyContent: 'center' },
   content: { gap: 16 },
+  noTop: { paddingTop: 0 },
   stale: { textAlign: 'center' },
   source: { textAlign: 'center', paddingVertical: 8 },
 });
