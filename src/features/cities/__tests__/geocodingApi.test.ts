@@ -34,6 +34,21 @@ describe('searchCities', () => {
     expect(res.data[1].sub).toBe('Мехико, Мексика');
   });
 
+  it('страны (PCL*) в список городов не попадают', async () => {
+    mockGet.mockResolvedValue({
+      ok: true,
+      data: {
+        results: [
+          { id: 1, name: 'Казахстан', latitude: 48, longitude: 68, feature_code: 'PCLI', country: 'Казахстан' },
+          { id: 2, name: 'Казань', latitude: 55.79, longitude: 49.12, feature_code: 'PPLA', country: 'Россия' },
+        ],
+      },
+    });
+    const res = await searchCities('Каз');
+    if (!res.ok) throw new Error('ожидался успех');
+    expect(res.data.map((r) => r.city.name)).toEqual(['Казань']);
+  });
+
   it('ответ без results: пустой список', async () => {
     mockGet.mockResolvedValue({ ok: true, data: { generationtime_ms: 0.07 } });
     await expect(searchCities('ывап')).resolves.toEqual({ ok: true, data: [] });

@@ -35,6 +35,15 @@ describe('citiesStore', () => {
     expect(useCitiesStore.getState().saved).toEqual([]);
   });
 
+  it('removeCity убирает город и оставляет остальные по порядку', () => {
+    const { addCity, removeCity } = useCitiesStore.getState();
+    addCity(city('geo:1'));
+    addCity(city('geo:2'));
+    addCity(city('geo:3'));
+    removeCity('geo:2');
+    expect(useCitiesStore.getState().saved.map((c) => c.id)).toEqual(['geo:1', 'geo:3']);
+  });
+
   it('selectPages: местоположение первым', () => {
     const here = city('current-location', true);
     expect(selectPages({ currentLocation: null, saved: [city('a')] }).map((c) => c.id)).toEqual(['a']);

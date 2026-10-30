@@ -46,7 +46,9 @@ export async function searchCities(query: string): Promise<SearchCitiesResult> {
   if (!parsed.success) {
     return { ok: false, error: { kind: 'invalid', issues: parsed.error.issues.map((i) => i.path.join('.')).join(', ') } };
   }
-  const data = (parsed.data.results ?? []).map((r) => {
+  // PCL* — страны и зависимые территории: погода нужна городу, а не стране
+  const places = (parsed.data.results ?? []).filter((r) => !r.feature_code?.startsWith('PCL'));
+  const data = places.map((r) => {
     const place = [r.admin1, r.country].filter(Boolean).join(', ');
     return {
       city: {

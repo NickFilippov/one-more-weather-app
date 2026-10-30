@@ -27,7 +27,17 @@ function buildHero(city: Pick<City, 'name'>, f: Forecast): HeroVM {
   return { place: city.name, temp, condition: labelFor(f.current.code), high, low };
 }
 
-export function buildMainVM(city: Pick<City, 'name'>, f: Forecast, now: number): MainVM {
+/**
+ * Прогноз свежий до 30 минут, а страница открыта дольше: ленту и сводку считаем от настоящего «сейчас»,
+ * а не от времени снимка `current.time`. Иначе текущий час повторяется в ленте, а сводка говорит
+ * «около 17:00 начнётся дождь», когда 17:00 уже прошло.
+ */
+function atNow(f: Forecast, now: number): Forecast {
+  return now > f.current.time ? { ...f, current: { ...f.current, time: now } } : f;
+}
+
+export function buildMainVM(city: Pick<City, 'name'>, forecast: Forecast, now: number): MainVM {
+  const f = atNow(forecast, now);
   const off = f.utcOffsetSeconds;
   const hero = buildHero(city, f);
   const { temp, high, low, condition } = hero;

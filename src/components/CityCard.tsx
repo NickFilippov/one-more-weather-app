@@ -68,7 +68,7 @@ function Card({ vm, onPress }: { vm: CityCardVM; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { height: 116 },
+  wrap: { height: 116, flexGrow: 1, flexShrink: 1 },
   card: { flex: 1, borderRadius: radius.card },
   clip: { flex: 1, borderRadius: radius.card, overflow: 'hidden' },
   edge: { borderRadius: radius.card, borderWidth: 1 },

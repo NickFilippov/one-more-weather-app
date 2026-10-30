@@ -462,7 +462,7 @@ ThemeProvider night → View flex 1, LinearGradient skyTop → skyBottom (locati
 └── ScrollView keyboardShouldPersistTaps="handled"
       contentContainerStyle: paddingTop insets.top, paddingHorizontal 16, paddingBottom insets.bottom + 24, gap 16
     ├── Ряд space-between: RoundButton 44 «Назад» (back) → router.back();
-    │                      RoundButton 44 «Изменить список» (more) — до этапа 8 скрыта, на её месте пустой View 44
+    │                      RoundButton 44 «Изменить список» (more; в правке — «Готово», done): скрыта, пока нет сохранённых городов, на её месте пустой View 44
     ├── Text «Города» (place)
     ├── SearchField
     ├── поле пустое: CityCard для каждого города (местоположение первым)

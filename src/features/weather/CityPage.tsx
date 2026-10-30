@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Linking, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Atmosphere } from '@/components/atmosphere/Atmosphere';
@@ -6,12 +6,14 @@ import { useFooterBottom } from '@/components/Footer';
 import { DailyForecast } from '@/components/DailyForecast';
 import { HourlyForecast } from '@/components/HourlyForecast';
 import { StatePanel } from '@/components/StatePanel';
+import { StatusBarScrim } from '@/components/StatusBarScrim';
 import { TempHero } from '@/components/TempHero';
 import { Tiles } from '@/components/Tiles';
 import type { City } from '@/features/cities/types';
 import { ru } from '@/i18n/ru';
 import { formatClock } from '@/lib/format';
 import { cityClock } from '@/lib/time';
+import { useNowMs } from '@/lib/useNowMs';
 import { useReduceMotion } from '@/lib/useReduceMotion';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { type } from '@/theme/typography';
@@ -20,8 +22,12 @@ import { useWeatherStore } from './weatherStore';
 
 const SOURCE_URL = 'https://open-meteo.com/';
 
-/** Один город на главном экране: небо, шапка, лента часов, 10 дней, плитки. */
-export function CityPage({
+/**
+ * Один город на главном экране: небо, шапка, лента часов, 10 дней, плитки.
+ * `memo`: при смене страницы перерисовываются только две, у которых поменялось `active`;
+ * без него каждое листание заново строило все страницы.
+ */
+export const CityPage = memo(function CityPage({
   city,
   active,
 }: {
@@ -32,11 +38,11 @@ export function CityPage({
   const status = useWeatherStore((s) => s.status[city.id]);
   const error = useWeatherStore((s) => s.error[city.id]);
   const refresh = useWeatherStore((s) => s.refresh);
-  const [openedAt] = useState(Date.now);
+  const openedAt = useNowMs();
   const [pulling, setPulling] = useState(false);
 
-  // «Сейчас» — момент открытия страницы или последнего обновления данных, что позже: прогноз
-  // обновляется при запуске и возврате в приложение, если он старше 30 минут
+  // «Сейчас» — момент открытия страницы, возврата в приложение или последнего обновления данных,
+  // что позже: прогноз обновляется при запуске и возврате, если он старше 30 минут
   const vm = useMemo(() => {
     if (!forecast) return null;
     return buildMainVM(city, forecast, Math.floor(Math.max(openedAt, forecast.fetchedAt) / 1000));
@@ -60,10 +66,11 @@ export function CityPage({
         ) : (
           <Empty status={status} error={error} onRetry={retry} />
         )}
+        <StatusBarScrim />
       </Atmosphere>
     </ThemeProvider>
   );
-}
+});
 
 function useContentInsets() {
   const insets = useSafeAreaInsets();

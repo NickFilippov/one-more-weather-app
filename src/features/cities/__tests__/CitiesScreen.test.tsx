@@ -53,8 +53,49 @@ describe('экран городов', () => {
     mockSearch.mockReset();
     mockSearch.mockResolvedValue({ ok: true, data: [{ city: kazan, sub: 'Татарстан, Россия' }] });
     refresh.mockClear();
-    useCitiesStore.setState({ currentLocation: null, saved: [] });
+    useCitiesStore.setState({ currentLocation: null, saved: [], locationPermission: 'unknown' });
     useWeatherStore.setState({ entries: {}, status: {}, error: {}, refresh });
+  });
+
+  it('«Определить местоположение» — пока местоположения нет и в доступе не отказано', async () => {
+    const { rerender } = await renderScreen();
+    expect(screen.getByLabelText('Определить местоположение')).toBeTruthy();
+    useCitiesStore.setState({ locationPermission: 'denied' });
+    await rerender(
+      <SafeAreaProvider initialMetrics={metrics}>
+        <CitiesScreen />
+      </SafeAreaProvider>,
+    );
+    expect(screen.queryByLabelText('Определить местоположение')).toBeNull();
+  });
+
+  it('правка списка: удаляет сохранённый город вместе с прогнозом, местоположение не удаляется', async () => {
+    const here = { id: 'current-location', name: 'Москва', latitude: 55.76, longitude: 37.62, isCurrentLocation: true };
+    useCitiesStore.setState({ currentLocation: here, saved: [kazan], locationPermission: 'granted' });
+    const forget = jest.fn();
+    useWeatherStore.setState({ forget });
+    await renderScreen();
+    expect(screen.queryByLabelText('Удалить город Казань')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Изменить список'));
+    expect(screen.queryByLabelText('Удалить город Москва')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Удалить город Казань'));
+    expect(useCitiesStore.getState().saved).toEqual([]);
+    expect(forget).toHaveBeenCalledWith(kazan.id);
+    // удалять больше нечего: правка закрылась, кнопки правки нет
+    expect(screen.queryByLabelText('Готово')).toBeNull();
+    expect(screen.queryByLabelText('Изменить список')).toBeNull();
+  });
+
+  it('местоположение есть: кнопки нет, карточка первой с подписью', async () => {
+    const here = { id: 'current-location', name: 'Москва', latitude: 55.76, longitude: 37.62, isCurrentLocation: true };
+    useCitiesStore.setState({ currentLocation: here, saved: [kazan], locationPermission: 'granted' });
+    await renderScreen();
+    expect(screen.queryByLabelText('Определить местоположение')).toBeNull();
+    expect(screen.getAllByLabelText(/загрузка…$/).map((n) => n.props.accessibilityLabel)).toEqual([
+      'Москва, загрузка…',
+      'Казань, загрузка…',
+    ]);
+    expect(screen.getByText('Моё местоположение')).toBeTruthy();
   });
 
   it('найденный город добавляется, грузит погоду, поле очищается, появляется карточка', async () => {

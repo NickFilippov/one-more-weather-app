@@ -15,6 +15,8 @@ export const ru = {
   a11y: {
     back: 'Назад',
     editList: 'Изменить список',
+    doneEditing: 'Готово',
+    deleteCity: (name: string) => `Удалить город ${name}`,
     map: 'Карта осадков',
     cityList: 'Список городов',
     search: 'Поиск города',
@@ -44,9 +46,9 @@ export const ru = {
       'Западный',
       'Северо-западный',
     ],
-    gusts: (dir: string, gusts: number) => `${dir}, порывы до ${gusts} м/с.`,
+    gusts: (dir: string, gusts: number) => `${dir}, порывы до\u00A0${gusts}\u00A0м/с.`,
     plain: (dir: string) => `${dir}.`,
-    gustsOnly: (gusts: number) => `Порывы до ${gusts} м/с.`,
+    gustsOnly: (gusts: number) => `Порывы до\u00A0${gusts}\u00A0м/с.`,
   },
   feelsLike: {
     colderWind: 'Из-за ветра кажется холоднее.',
@@ -63,7 +65,7 @@ export const ru = {
     polarDay: 'Полярный день.',
   },
   precip: {
-    withNext: (mm: string) => `За 3 часа. Ещё ${mm} мм за 12 часов.`,
+    withNext: (mm: string) => `За 3 часа. Ещё ${mm}\u00A0мм за 12\u00A0часов.`,
     none: 'За 3 часа. Дальше без осадков.',
   },
   summary: {
@@ -71,8 +73,8 @@ export const ru = {
     endless: (kind: string) => `${kind} в ближайшие сутки не прекратится.`,
     starts: (hh: string, kind: string) => `Около ${hh}:00 начнётся ${kind}.`,
     dry: 'Без осадков в ближайшие сутки.',
-    night: (t: string) => `Ночью до ${t}.`,
-    morning: (t: string) => `К утру до ${t}.`,
+    night: (t: string) => `Ночью до\u00A0${t}.`,
+    morning: (t: string) => `К утру до\u00A0${t}.`,
   },
   precipKind: {
     rain: { nominative: 'Дождь', lower: 'дождь' },
@@ -82,7 +84,11 @@ export const ru = {
   state: {
     emptyTitle: 'Погода рядом',
     emptyText: 'Можно определить местоположение или выбрать город.',
+    noCitiesTitle: 'Нет городов',
+    noCitiesText: 'Добавьте город в списке.',
     locate: 'Определить местоположение',
+    locating: 'Определение местоположения…',
+    locateError: 'Не удалось определить местоположение. Проверьте, что геолокация включена.',
     pickCity: 'Выбрать город',
     errorTitle: 'Не удалось загрузить погоду',
     offline: 'Нет подключения к интернету.',

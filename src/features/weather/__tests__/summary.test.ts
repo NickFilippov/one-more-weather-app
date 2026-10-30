@@ -62,14 +62,14 @@ describe('вторая фраза', () => {
 
   it('днём: «Ночью до N°» — минимум по часам 0–6', () => {
     const f = atLocalHour(10, true, (_, lh) => (lh <= 6 ? 3 - lh / 10 : 12));
-    expect(buildSummary(f)).toBe('Без осадков в ближайшие сутки. Ночью до 2°.');
+    expect(buildSummary(f)).toBe('Без осадков в ближайшие сутки. Ночью до\u00A02°.');
     const cold = atLocalHour(10, true, (_, lh) => (lh === 5 ? -1.4 : 8));
-    expect(buildSummary(cold)).toBe('Без осадков в ближайшие сутки. Ночью до −1°.');
+    expect(buildSummary(cold)).toBe('Без осадков в ближайшие сутки. Ночью до\u00A0−1°.');
   });
 
   it('ночью: «К утру до N°» — от текущего часа до 7:00', () => {
     const f = atLocalHour(22, false, (_, lh) => (lh === 5 ? -1 : lh === 12 ? -30 : 4));
-    expect(buildSummary(f)).toBe('Без осадков в ближайшие сутки. К утру до −1°.');
+    expect(buildSummary(f)).toBe('Без осадков в ближайшие сутки. К утру до\u00A0−1°.');
   });
 
   it('нет ночных часов в ленте — второй фразы нет', () => {

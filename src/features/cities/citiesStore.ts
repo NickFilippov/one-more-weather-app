@@ -10,6 +10,7 @@ interface CitiesState {
   saved: City[]; // добавленные пользователем, в порядке списка
   locationPermission: LocationPermission;
   addCity(city: City): 'added' | 'duplicate';
+  removeCity(id: string): void;
   setCurrentLocation(city: City | null): void;
   setLocationPermission(p: LocationPermission): void;
 }
@@ -26,6 +27,7 @@ export const useCitiesStore = create<CitiesState>()(
         set({ saved: [...saved, city] });
         return 'added';
       },
+      removeCity: (id) => set((s) => ({ saved: s.saved.filter((c) => c.id !== id) })),
       setCurrentLocation: (city) => set({ currentLocation: city }),
       setLocationPermission: (p) => set({ locationPermission: p }),
     }),

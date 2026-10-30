@@ -47,6 +47,19 @@ describe('buildMainVM', () => {
     expect(vm.hours[0].a11y.startsWith('Сейчас, ')).toBe(true);
   });
 
+  it('страница открыта позже снимка: лента начинается со следующего часа, а не повторяет текущий', () => {
+    const { f, now } = forecastOf('sochi');
+    const clock = (t: number) => new Date((t + f.utcOffsetSeconds) * 1000).getUTCHours();
+    const hourNow = clock(f.current.time);
+    const fresh = buildMainVM(sochi, f, now);
+    expect(Number(fresh.hours[1].time)).toBe((hourNow + 1) % 24);
+    // прошёл час и ещё немного: «сейчас» уехал на час вперёд
+    const later = buildMainVM(sochi, f, f.current.time + 3600 + 60);
+    expect(Number(later.hours[1].time)).toBe((hourNow + 2) % 24);
+    // прогноз приходит на 24 часа вперёд, так что через час в ленте на точку меньше
+    expect(later.hours).toHaveLength(fresh.hours.length - 1);
+  });
+
   it('собирает 10 дней, первый — «Сегодня» с точкой «сейчас»', () => {
     const { f, now } = forecastOf('sochi');
     const vm = buildMainVM(sochi, f, now);

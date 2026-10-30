@@ -1,4 +1,4 @@
-import { configure, render, screen } from '@testing-library/react-native';
+import { configure, fireEvent, render, screen } from '@testing-library/react-native';
 import { DailyForecast } from '../DailyForecast';
 import { HourlyForecast } from '../HourlyForecast';
 import { PageDots } from '../PageDots';
@@ -84,6 +84,13 @@ describe('компоненты рисуются без ошибок', () => {
   it('PageDots: подпись и окно при большом числе городов', async () => {
     await inTheme(<PageDots count={25} current={12} location label="Сочи, город 13 из 25" />);
     expect(screen.getByLabelText('Сочи, город 13 из 25')).toBeTruthy();
+  });
+
+  it('PageDots: нажатие на точку выбирает город', async () => {
+    const onSelect = jest.fn();
+    await inTheme(<PageDots count={3} current={0} location={false} label="Сочи, город 1 из 3" onSelect={onSelect} />);
+    await fireEvent.press(screen.getByLabelText('Город 3 из 3'));
+    expect(onSelect).toHaveBeenCalledWith(2);
   });
 
   it('StatePanel: кнопка вызывает действие', async () => {

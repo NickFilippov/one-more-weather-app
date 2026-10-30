@@ -19,11 +19,12 @@ export function RoundButton({ label, icon, size = 56, onPress }: Props) {
     <PressableScale label={label} onPress={onPress} style={{ width: size, height: size, flexGrow: 0 }}>
       {(pressed) => (
         <View
-          style={[
-            styles.circle,
-            { borderRadius: size / 2, backgroundColor: pressed ? c.panelStrong : c.panelSolid, borderColor: c.panelEdge },
-          ]}
+          style={[styles.circle, { borderRadius: size / 2, backgroundColor: c.panelSolid, borderColor: c.panelEdge }]}
         >
+          {/* нажатие подсвечивает поверх непрозрачной заливки: сквозь кнопку небо не просвечивает */}
+          {pressed ? (
+            <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: size / 2, backgroundColor: c.panelStrong }]} />
+          ) : null}
           <UiIcon name={icon} size={Math.round(size * 0.43)} color={c.text} />
         </View>
       )}

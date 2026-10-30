@@ -1,6 +1,6 @@
 import Svg, { Circle, Path } from 'react-native-svg';
 
-export type UiIconName = 'map' | 'list' | 'back' | 'more' | 'search';
+export type UiIconName = 'map' | 'list' | 'back' | 'more' | 'search' | 'delete' | 'done';
 
 interface Props {
   name: UiIconName;
@@ -40,6 +40,18 @@ export function UiIcon({ name, size = 24, color }: Props) {
           <Circle cx={5} cy={12} r={1.9} />
           <Circle cx={12} cy={12} r={1.9} />
           <Circle cx={19} cy={12} r={1.9} />
+        </Svg>
+      );
+    case 'delete':
+      return (
+        <Svg {...common} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5" />
+        </Svg>
+      );
+    case 'done':
+      return (
+        <Svg {...common} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M5 12.5l4.5 4.5L19 7.5" />
         </Svg>
       );
     case 'search':

@@ -82,7 +82,7 @@ describe('пояснения', () => {
     const w = tile(dayCalm((r) => { r.current.wind_speed_10m = 6.4; r.current.wind_direction_10m = 315; r.current.wind_gusts_10m = 11; }), 'wind');
     expect(w.value).toBe('6');
     expect(w.unit).toBe('м/с');
-    expect(w.note).toBe('Северо-западный, порывы до 11 м/с.');
+    expect(w.note).toBe('Северо-западный, порывы до\u00A011\u00A0м/с.');
     expect(tile(dayCalm((r) => { r.current.wind_speed_10m = 3; r.current.wind_direction_10m = 0; r.current.wind_gusts_10m = 3; }), 'wind').note)
       .toBe('Северный.');
     const calm = tile(dayCalm((r) => { r.current.wind_speed_10m = 0.2; }), 'wind');
@@ -105,7 +105,7 @@ describe('пояснения', () => {
     });
     const p = tile(tiles, 'precipitation');
     expect(p.value).toBe('18');
-    expect(p.note).toBe('За 3 часа. Ещё 9 мм за 12 часов.');
+    expect(p.note).toBe('За 3 часа. Ещё 9\u00A0мм за 12\u00A0часов.');
     const dry = tile(keys((r) => { r.current.weather_code = 95; r.hourly.precipitation = r.hourly.precipitation.map(() => 0); }), 'precipitation');
     expect(dry.note).toBe('За 3 часа. Дальше без осадков.');
   });
