@@ -70,7 +70,7 @@ Read them with the Artifact tool (`action: "read"`, `path: "project/README.md"` 
 | Token | Value |
 | --- | --- |
 | `sky-top` / `sky-mid` / `sky-bottom` | `#2a62a3` / `#1d4880` / `#163c6e` and `#152452` / `#0f1a3e` / `#070d24`; gradient top → mid at 38% → bottom |
-| `panel` / `panelEdge` (design: `glass-frosted` / `glass-edge-frosted`) | `rgba(10,35,80,.32)` / white 0.18 and `rgba(4,9,24,.40)` / white 0.12 |
+| `panel` / `panelEdge` (design: `glass-frosted` / `glass-edge-frosted`) | `rgba(14,40,86,.8)` / white 0.18 and `rgba(5,10,28,.8)` / white 0.12. The fill is dense on purpose: without blur, rain showed through the design's 0.32–0.40 |
 | `panelStrong` (design: `glass-fill-strong`) | white at 0.20 / 0.16: pressed state, chip of the current hour, range-bar track |
 | `cloud` (design: `glass-edge`) | white at 0.42 / 0.30: cloud colour in the sky |
 | `panelSolid` (not in the design) | `#163c6e` and `#070d24` (the sky-bottom colours, opaque): footer pill and round buttons, so scrolled text does not show through without blur |

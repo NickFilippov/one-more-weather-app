@@ -17,13 +17,13 @@
 
 ## Токены (`src/theme/tokens.ts`)
 
-Цвета из `tokens.json`. Стеклянные токены дизайн-системы заменены четырьмя: `panel` (было `glass-frosted`), `panelEdge` (`glass-edge-frosted`), `panelStrong` (`glass-fill-strong`), `cloud` (`glass-edge`). Тени, блик и радиусы размытия не используются.
+Цвета из `tokens.json`. Стеклянные токены дизайн-системы заменены четырьмя: `panel` (было `glass-frosted`, плотность поднята до 0.8), `panelEdge` (`glass-edge-frosted`), `panelStrong` (`glass-fill-strong`), `cloud` (`glass-edge`). Тени, блик и радиусы размытия не используются.
 
 ```ts
 export const colors = {
   day: {
     skyTop: '#2a62a3', skyMid: '#1d4880', skyBottom: '#163c6e',
-    panel: 'rgba(10,35,80,0.32)',          // заливка панелей и круглых кнопок
+    panel: 'rgba(14,40,86,0.8)',           // заливка панелей: плотная, иначе без размытия сквозь неё виден дождь
     panelStrong: 'rgba(255,255,255,0.20)', // нажатие, текущий час, дорожка шкалы
     panelEdge: 'rgba(255,255,255,0.18)',   // кромка 1 pt
     panelSolid: '#163c6e',    // футер и круглые кнопки: сквозь них не читается прокрученный текст
@@ -36,7 +36,7 @@ export const colors = {
   },
   night: {
     skyTop: '#152452', skyMid: '#0f1a3e', skyBottom: '#070d24',
-    panel: 'rgba(4,9,24,0.40)', panelStrong: 'rgba(255,255,255,0.16)', panelEdge: 'rgba(255,255,255,0.12)',
+    panel: 'rgba(5,10,28,0.8)', panelStrong: 'rgba(255,255,255,0.16)', panelEdge: 'rgba(255,255,255,0.12)',
     panelSolid: '#070d24',
     hairline: 'rgba(255,255,255,0.12)',
     cloud: 'rgba(255,255,255,0.30)',
