@@ -7,6 +7,8 @@ export const colors = {
     panel: 'rgba(10,35,80,0.32)',
     panelStrong: 'rgba(255,255,255,0.20)',
     panelEdge: 'rgba(255,255,255,0.18)',
+    // Футер и круглые кнопки: непрозрачные, иначе сквозь них читается прокрученный текст
+    panelSolid: '#163c6e',
     hairline: 'rgba(255,255,255,0.16)',
     cloud: 'rgba(255,255,255,0.42)',
     text: '#ffffff',
@@ -27,6 +29,7 @@ export const colors = {
     panel: 'rgba(4,9,24,0.40)',
     panelStrong: 'rgba(255,255,255,0.16)',
     panelEdge: 'rgba(255,255,255,0.12)',
+    panelSolid: '#070d24',
     hairline: 'rgba(255,255,255,0.12)',
     cloud: 'rgba(255,255,255,0.30)',
     text: '#ffffff',

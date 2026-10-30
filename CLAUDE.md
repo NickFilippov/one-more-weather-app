@@ -71,6 +71,7 @@ Read them with the Artifact tool (`action: "read"`, `path: "project/README.md"` 
 | `panel` / `panelEdge` (design: `glass-frosted` / `glass-edge-frosted`) | `rgba(10,35,80,.32)` / white 0.18 and `rgba(4,9,24,.40)` / white 0.12 |
 | `panelStrong` (design: `glass-fill-strong`) | white at 0.20 / 0.16: pressed state, chip of the current hour, range-bar track |
 | `cloud` (design: `glass-edge`) | white at 0.42 / 0.30: cloud colour in the sky |
+| `panelSolid` (not in the design) | `#163c6e` and `#070d24` (the sky-bottom colours, opaque): footer pill and round buttons, so scrolled text does not show through without blur |
 | `hairline` | white at 0.16 / 0.12 |
 | `text` / `text-muted` | `#ffffff` / `#dfe9f7` day, `#c3cde3` night |
 | `sun` / `on-sun` | `#ffd36b` / `#2a1d00` |

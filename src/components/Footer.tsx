@@ -5,6 +5,7 @@ import { Panel } from '@/components/Panel';
 import { Reveal } from '@/components/Reveal';
 import { RoundButton } from '@/components/RoundButton';
 import { ru } from '@/i18n/ru';
+import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
 /** Расстояние от низа до футера: 28 из макета, но не меньше нижней safe area. */
@@ -21,11 +22,12 @@ interface Props {
 }
 
 export function Footer({ dots, onOpenCities, onOpenMap }: Props) {
+  const { c } = useTheme();
   const bottom = useFooterBottom();
   return (
     <Reveal pointerEvents="box-none" style={[styles.root, { bottom }]}>
       {onOpenMap ? <RoundButton label={ru.a11y.map} icon="map" onPress={onOpenMap} /> : <View style={styles.spacer} />}
-      <Panel radius={radius.pill} style={styles.pill}>
+      <Panel radius={radius.pill} style={[styles.pill, { backgroundColor: c.panelSolid }]}>
         {dots}
       </Panel>
       <RoundButton label={ru.a11y.cityList} icon="list" onPress={onOpenCities} />

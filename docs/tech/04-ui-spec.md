@@ -26,6 +26,7 @@ export const colors = {
     panel: 'rgba(10,35,80,0.32)',          // заливка панелей и круглых кнопок
     panelStrong: 'rgba(255,255,255,0.20)', // нажатие, текущий час, дорожка шкалы
     panelEdge: 'rgba(255,255,255,0.18)',   // кромка 1 pt
+    panelSolid: '#163c6e',    // футер и круглые кнопки: сквозь них не читается прокрученный текст
     hairline: 'rgba(255,255,255,0.16)',
     cloud: 'rgba(255,255,255,0.42)',       // цвет облаков в небе
     text: '#ffffff', textMuted: '#dfe9f7',
@@ -36,6 +37,7 @@ export const colors = {
   night: {
     skyTop: '#152452', skyMid: '#0f1a3e', skyBottom: '#070d24',
     panel: 'rgba(4,9,24,0.40)', panelStrong: 'rgba(255,255,255,0.16)', panelEdge: 'rgba(255,255,255,0.12)',
+    panelSolid: '#070d24',
     hairline: 'rgba(255,255,255,0.12)',
     cloud: 'rgba(255,255,255,0.30)',
     text: '#ffffff', textMuted: '#c3cde3',
@@ -212,7 +214,7 @@ interface PanelProps {
 interface RoundButtonProps { label: string; icon: UiIconName; size?: 56 | 44; onPress?: () => void }
 ```
 
-- Круг `size × size` (56 в футере, 44 в шапке): `PressableScale`, внутри `View` с заливкой `panel` (при нажатии `panelStrong`) и кромкой `panelEdge`.
+- Круг `size × size` (56 в футере, 44 в шапке): `PressableScale`, внутри `View` с заливкой `panelSolid` (при нажатии `panelStrong`) и кромкой `panelEdge`.
 - Иконка по центру, размер `round(size × 0.43)`: 24 в кнопке 56, 19 в кнопке 44. Цвет `text`.
 - `accessibilityLabel = label` обязателен (NFR-12). Область нажатия не меньше 44 (NFR-13): у кнопки 44 это выполняется, `hitSlop` не нужен.
 
@@ -231,7 +233,7 @@ interface PageDotsProps { count: number; current: number; location: boolean; lab
 
 - `Reveal` с `position: 'absolute'`, `left: 16`, `right: 16`, `bottom: Math.max(insets.bottom, 28)`, ряд `space-between`, `alignItems: 'center'`, `pointerEvents="box-none"`: футер появляется одним блоком.
 - Слева `RoundButton` «Карта осадков» (иконка `map`). До этапа 8 кнопка не рисуется, на её месте пустой `View` 56×56, чтобы пилюля осталась по центру. **Предложение.**
-- По центру пилюля: `Panel radius={radius.pill}`, высота 56, `paddingHorizontal: 24`, внутри `PageDots`.
+- По центру пилюля: `Panel radius={radius.pill}` с заливкой `panelSolid`, высота 56, `paddingHorizontal: 24`, внутри `PageDots`.
 - Справа `RoundButton` «Список городов» (иконка `list`) → `router.push('/cities')`.
 - Нижний отступ прокрутки страницы: `footerBottom + 56 + 40`, чтобы последняя панель уезжала из-под футера.
 

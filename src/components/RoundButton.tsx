@@ -12,7 +12,7 @@ interface Props {
   onPress?: () => void;
 }
 
-/** Круглая кнопка с иконкой на заливке панели. */
+/** Круглая кнопка с иконкой на непрозрачной заливке. */
 export function RoundButton({ label, icon, size = 56, onPress }: Props) {
   const { c } = useTheme();
   return (
@@ -21,7 +21,7 @@ export function RoundButton({ label, icon, size = 56, onPress }: Props) {
         <View
           style={[
             styles.circle,
-            { borderRadius: size / 2, backgroundColor: pressed ? c.panelStrong : c.panel, borderColor: c.panelEdge },
+            { borderRadius: size / 2, backgroundColor: pressed ? c.panelStrong : c.panelSolid, borderColor: c.panelEdge },
           ]}
         >
           <UiIcon name={icon} size={Math.round(size * 0.43)} color={c.text} />
