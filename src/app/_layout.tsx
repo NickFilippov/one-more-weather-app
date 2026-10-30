@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useCurrentLocation } from '@/features/cities/useCurrentLocation';
 import { SplashOverlay } from '@/features/splash/SplashOverlay';
 import { useWeatherAutoRefresh } from '@/features/weather/useWeatherAutoRefresh';
 import { setEntrancePhase } from '@/lib/entrance';
@@ -32,6 +33,7 @@ export default function RootLayout() {
     requestAnimationFrame(() => requestAnimationFrame(() => setMainReady(true)));
   }, []);
   useWeatherAutoRefresh();
+  useCurrentLocation();
 
   return (
     <ReduceMotionProvider>

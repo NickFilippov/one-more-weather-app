@@ -62,6 +62,16 @@ describe('weatherStore', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
+  it('координаты сменились во время запроса — после него запрос по новым', async () => {
+    const moved = { ...city('a'), latitude: 3, longitude: 4 };
+    const [p1, p2] = [useWeatherStore.getState().refresh(city('a')), useWeatherStore.getState().refresh(moved)];
+    await Promise.all([p1, p2]);
+    expect(mockFetch.mock.calls).toEqual([
+      [1, 2],
+      [3, 4],
+    ]);
+  });
+
   it('ошибка не стирает старые данные', async () => {
     await useWeatherStore.getState().refresh(city('a'));
     const before = useWeatherStore.getState().entries.a;

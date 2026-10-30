@@ -20,10 +20,12 @@ interface WeatherState {
   error: Record<string, WeatherError | undefined>;
   refresh(city: City, opts?: RefreshOptions): Promise<void>;
   refreshAll(cities: City[], opts?: RefreshOptions): Promise<void>;
+  /** Убрать прогноз удалённого города. */
+  forget(id: string): void;
 }
 
-// Запросы в полёте: повторный refresh города получает тот же промис.
-const inflight = new Map<string, Promise<void>>();
+// Запросы в полёте: повторный refresh города с теми же координатами получает тот же промис.
+const inflight = new Map<string, { job: Promise<void>; latitude: number; longitude: number }>();
 
 export const useWeatherStore = create<WeatherState>()(
   persist(
@@ -34,7 +36,11 @@ export const useWeatherStore = create<WeatherState>()(
 
       refresh(city, opts) {
         const existing = inflight.get(city.id);
-        if (existing) return existing;
+        if (existing) {
+          if (existing.latitude === city.latitude && existing.longitude === city.longitude) return existing.job;
+          // Местоположение сменилось, пока шёл запрос по старым координатам: запросить заново после него
+          return existing.job.then(() => get().refresh(city, { force: true }));
+        }
 
         const entry = get().entries[city.id];
         if (!opts?.force && entry && Date.now() - entry.fetchedAt < FRESH_MS) return Promise.resolve();
@@ -61,8 +67,17 @@ export const useWeatherStore = create<WeatherState>()(
             inflight.delete(city.id);
           }
         })();
-        inflight.set(city.id, job);
+        inflight.set(city.id, { job, latitude: city.latitude, longitude: city.longitude });
         return job;
+      },
+
+      forget(id) {
+        set((s) => {
+          const { [id]: _entry, ...entries } = s.entries;
+          const { [id]: _status, ...status } = s.status;
+          const { [id]: _error, ...error } = s.error;
+          return { entries, status, error };
+        });
       },
 
       async refreshAll(cities, opts) {

@@ -36,7 +36,12 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Местоположение нужно, чтобы показать погоду там, где вы находитесь."
+          "locationWhenInUsePermission": "Местоположение нужно, чтобы показать погоду там, где вы находитесь.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "locationFullAccuracyPermission": false,
+          "motionUsagePermission": false,
+          "isIosReducedAccuracyByDefault": true
         }
       ],
       [
