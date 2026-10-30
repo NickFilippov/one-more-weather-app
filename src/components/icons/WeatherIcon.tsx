@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import Svg, { Circle, G, Line, Path, Rect } from 'react-native-svg';
 import type { IconKind } from '@/features/weather/types';
 import { useLoopValue } from '@/lib/useLoopValue';
@@ -27,16 +27,22 @@ interface Props {
   animate?: boolean;
 }
 
-/** У каждой иконки одно движение: какой частью и с каким циклом. Луна стоит. */
+/** Главное движение иконки: какой частью и с каким циклом. Луна стоит. */
 const MOTION: Record<IconKind, { ms: number; reverse: boolean } | null> = {
   sun: { ms: 24000, reverse: false }, // лучи вращаются
   partly: { ms: 6000, reverse: true }, // облако покачивается
   cloud: { ms: 6000, reverse: true },
-  rain: { ms: 1100, reverse: false }, // капли падают
-  snow: { ms: 2400, reverse: false }, // снежинки падают
+  rain: { ms: 1100, reverse: false }, // капли падают по очереди
+  snow: { ms: 2400, reverse: false }, // снежинки падают по очереди
   storm: { ms: 3200, reverse: false }, // молния вспыхивает
   moon: null,
 };
+
+/** Падение капли или снежинки, как в макете: от `from` до `to`, видна полностью на `peak` цикла. */
+const FALL = { rain: { from: -3, to: 5, peak: 0.25 }, snow: { from: -2, to: 5, peak: 0.3 } };
+
+/** У дождя, снега и грозы облако ещё и покачивается своим циклом. */
+const BOBS: ReadonlySet<IconKind> = new Set(['rain', 'snow', 'storm']);
 
 export function WeatherIcon({ kind, size = 28, label, accessible = true, animate = false }: Props) {
   const { c } = useTheme();
@@ -47,8 +53,15 @@ export function WeatherIcon({ kind, size = 28, label, accessible = true, animate
     easing: motion?.reverse ? ease.drift : Easing.linear,
   });
   const k = size / 32;
+  const bob = useLoopValue(animate && BOBS.has(kind), 6000, { reverse: true, easing: ease.drift });
+  const cloudStyle = useAnimatedStyle(() => ({ transform: [{ translateX: (-0.6 + 1.4 * bob.value) * k }] }));
+  const fall = kind === 'rain' || kind === 'snow' ? FALL[kind] : null;
+  // три капли на одном цикле, каждая сдвинута на треть: падают вразнобой
+  const drop0 = useFall(v, 0, animate && fall != null, k, fall);
+  const drop1 = useFall(v, 1, animate && fall != null, k, fall);
+  const drop2 = useFall(v, 2, animate && fall != null, k, fall);
 
-  // Движущаяся часть иконки: одна на иконку, по одному значению цикла 0→1
+  // Главная движущаяся часть иконки
   const moving = useAnimatedStyle(() => {
     switch (kind) {
       case 'sun':
@@ -56,10 +69,6 @@ export function WeatherIcon({ kind, size = 28, label, accessible = true, animate
       case 'cloud':
       case 'partly':
         return { transform: [{ translateX: (-0.6 + 1.4 * v.value) * k }] };
-      case 'rain':
-      case 'snow':
-        // падают на 6 и тают к концу цикла
-        return { opacity: animate ? 1 - v.value : 1, transform: [{ translateY: (animate ? v.value * 6 - 2 : 0) * k }] };
       case 'storm':
         return { opacity: animate && v.value > 0.64 && v.value < 0.68 ? 0.25 : 1 };
       default:
@@ -69,6 +78,8 @@ export function WeatherIcon({ kind, size = 28, label, accessible = true, animate
 
   let still: ReactNode = null;
   let moves: ReactNode = null;
+  let bobbing: ReactNode = null;
+  let drops: ReactNode[] = [];
   switch (kind) {
     case 'sun':
       still = <Circle cx={16} cy={16} r={6} fill={c.sun} />;
@@ -94,27 +105,21 @@ export function WeatherIcon({ kind, size = 28, label, accessible = true, animate
       );
       break;
     case 'rain':
-      still = <CloudShape y={3} fill={c.text} />;
-      moves = (
-        <G stroke={c.rain} strokeWidth={2} strokeLinecap="round">
-          <Line x1={10} y1={23} x2={9} y2={27} />
-          <Line x1={16} y1={23} x2={15} y2={27} />
-          <Line x1={22} y1={23} x2={21} y2={27} />
-        </G>
-      );
+      bobbing = <CloudShape y={3} fill={c.text} />;
+      drops = [10, 16, 22].map((x) => (
+        <Line key={x} x1={x} y1={23} x2={x - 1} y2={27} stroke={c.rain} strokeWidth={2} strokeLinecap="round" />
+      ));
       break;
     case 'snow':
-      still = <CloudShape y={3} fill={c.text} />;
-      moves = (
-        <G fill={c.text}>
-          <Circle cx={10} cy={25} r={1.5} />
-          <Circle cx={16} cy={26} r={1.5} />
-          <Circle cx={22} cy={25} r={1.5} />
-        </G>
-      );
+      bobbing = <CloudShape y={3} fill={c.text} />;
+      drops = [
+        <Circle key={0} cx={10} cy={25} r={1.5} fill={c.text} />,
+        <Circle key={1} cx={16} cy={26} r={1.5} fill={c.text} />,
+        <Circle key={2} cx={22} cy={25} r={1.5} fill={c.text} />,
+      ];
       break;
     case 'storm':
-      still = <CloudShape y={3} fill={c.text} />;
+      bobbing = <CloudShape y={3} fill={c.text} />;
       moves = <Path d="M17 19l-5 7h4l-1.5 5L20 23.5h-4l1.5-4.5z" fill={c.sun} />;
       break;
   }
@@ -128,6 +133,16 @@ export function WeatherIcon({ kind, size = 28, label, accessible = true, animate
       importantForAccessibility={accessible ? 'yes' : 'no-hide-descendants'}
     >
       {still ? <Layer size={size}>{still}</Layer> : null}
+      {bobbing ? (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, cloudStyle]}>
+          <Layer size={size}>{bobbing}</Layer>
+        </Animated.View>
+      ) : null}
+      {drops.map((d, i) => (
+        <Animated.View key={i} pointerEvents="none" style={[StyleSheet.absoluteFill, [drop0, drop1, drop2][i]]}>
+          <Layer size={size}>{d}</Layer>
+        </Animated.View>
+      ))}
       {moves ? (
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, moving]}>
           <Layer size={size}>{moves}</Layer>
@@ -135,6 +150,16 @@ export function WeatherIcon({ kind, size = 28, label, accessible = true, animate
       ) : null}
     </View>
   );
+}
+
+/** Одна капля или снежинка: свой сдвиг фазы на общем цикле падения. */
+function useFall(v: SharedValue<number>, i: number, on: boolean, k: number, fall: { from: number; to: number; peak: number } | null) {
+  return useAnimatedStyle(() => {
+    if (!on || !fall) return { opacity: 1, transform: [{ translateY: 0 }] };
+    const p = (v.value + i / 3) % 1;
+    const opacity = p < fall.peak ? p / fall.peak : 1 - (p - fall.peak) / (1 - fall.peak);
+    return { opacity, transform: [{ translateY: (fall.from + (fall.to - fall.from) * p) * k }] };
+  });
 }
 
 /** Слой иконки: свой Svg того же размера, чтобы неподвижная и движущаяся части лежали друг на друге. */
